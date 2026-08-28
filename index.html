@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07072b" />
+  <title>До дня рождения 🎂</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="scene" aria-label="Счётчик до дня рождения">
+    <div class="sky-overlay" aria-hidden="true"></div>
+    <div class="stars" id="stars" aria-hidden="true"></div>
+    <div class="meteor-layer" id="meteors" aria-hidden="true"></div>
+    <div class="candle-glow" aria-hidden="true"></div>
+
+    <section class="countdown-card">
+      <div class="badge">✦ ПРАЗДНИК УЖЕ БЛИЗКО ✦</div>
+
+      <h1>ДО ДНЯ РОЖДЕНИЯ</h1>
+      <p></p>
+      
+      <div class="timer" id="timer" aria-live="polite">
+        <div class="time-box"><span id="days">000</span><small>ДНЕЙ</small></div>
+        <div class="colon">:</div>
+        <div class="time-box"><span id="hours">00</span><small>ЧАСОВ</small></div>
+        <div class="colon">:</div>
+        <div class="time-box"><span id="minutes">00</span><small>МИНУТ</small></div>
+        <div class="colon">:</div>
+        <div class="time-box"><span id="seconds">00</span><small>СЕКУНД</small></div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label"><span>До праздника</span><span id="percent">0%</span></div>
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+      
+      <p class="subtitle" id="subtitle">Осталось совсем чуть-чуть...</p>
+
+
+    </section>
+
+
+
+    <footer></footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

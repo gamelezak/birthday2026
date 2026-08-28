@@ -1,8 +1,4 @@
-// ==============================
-// НАСТРОЙКА СЧЁТЧИКА
-// ==============================
-// Укажи нужную дату в формате YYYY-MM-DDTHH:MM.
-// Сейчас стоит пример: 1 сентября 2026, 00:00.
+
 const DEFAULT_BIRTHDAY = '2026-09-27T00:00';
 
 const $ = (id) => document.getElementById(id);
@@ -28,7 +24,7 @@ function getTargetDate() {
     targetDate = DEFAULT_BIRTHDAY;
     d = new Date(targetDate);
   }
-  // После наступления праздника автоматически переносим дату на следующий год.
+
   if (d <= new Date()) {
     d.setFullYear(d.getFullYear() + 1);
     targetDate = toLocalInput(d);

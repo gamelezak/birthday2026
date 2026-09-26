@@ -1000,6 +1000,7 @@ h1 { color: var(--ui-title); }
   position: fixed;
   inset: 0;
   pointer-events: none;
+  display: none;
   z-index: 90;
   box-shadow:
     inset 0 0 0 3px rgba(255, 109, 179, .55),

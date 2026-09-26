@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#d9c8e4" />
+  <title>Счастливого 19-летия</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="congrats.css" />
+  <link rel="preload" href="congrats.html" as="document" />
+</head>
+<body>
+  <main class="scene theme-day" aria-label="Счётчик до 19-летия">
+    <div class="backgrounds" aria-hidden="true">
+      <div class="background-layer background-day is-active"></div>
+      <div class="background-layer background-night"></div>
+    </div>
+
+    <div class="sky-overlay" aria-hidden="true"></div>
+    <!-- Солнце и луна убраны по просьбе Именинницы: никаких светил и ореолов. -->
+    <div id="lanterns" class="layer" aria-hidden="true"></div>
+    <div class="clouds" aria-hidden="true">
+      <i class="cloud cloud-1"></i>
+      <i class="cloud cloud-2"></i>
+      <i class="cloud cloud-3"></i>
+    </div>
+    <div class="stars" id="stars" aria-hidden="true"></div>
+    <canvas class="shooting-stars" id="shootingStars" aria-hidden="true"></canvas>
+    <div class="candle-glow" aria-hidden="true"></div>
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="constellation" id="constellation" aria-hidden="true"><svg viewBox="0 0 220 150" preserveAspectRatio="xMidYMid meet"><polyline points="14,118 52,78 96,96 138,44 176,66 206,26"/><circle cx="14" cy="118" r="3"/><circle cx="52" cy="78" r="4"/><circle cx="96" cy="96" r="3"/><circle cx="138" cy="44" r="4.5"/><circle cx="176" cy="66" r="3"/><circle cx="206" cy="26" r="4"/></svg></div>
+    <div class="fireflies" id="fireflies" aria-hidden="true"></div>
+    <div class="dust-motes" id="dustMotes" aria-hidden="true"></div>
+    <div class="balloon-rig" id="balloonRig" aria-hidden="true"></div>
+    <div class="bunting-row" id="buntingRow" aria-hidden="true"></div>
+    <div class="confetti-rain" id="confettiRain" aria-hidden="true"></div>
+    <div class="bird-layer" id="birds" aria-hidden="true"></div>
+
+    <section class="countdown-card">
+      <div class="badge">ПРАЗДНИК УЖЕ БЛИЗКО</div>
+      <h1>До Дня Рождения</h1>
+      <p></p>
+      
+
+      <div class="timer" id="timer" aria-live="polite">
+        <div class="time-box"><span id="days" class="digit-roll"><em>000</em></span><small>ДНЕЙ</small></div>
+        <div class="colon">:</div>
+        <div class="time-box"><span id="hours" class="digit-roll"><em>00</em></span><small>ЧАСОВ</small></div>
+        <div class="colon">:</div>
+        <div class="time-box"><span id="minutes" class="digit-roll"><em>00</em></span><small>МИНУТ</small></div>
+        <div class="colon">:</div>
+        <div class="time-box"><span id="seconds" class="digit-roll"><em>00</em></span><small>СЕКУНД</small></div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Путь до праздника</span><span id="percent">0%</span></div>
+        <div class="progress">
+          <div class="progress-bar" id="progressBar">
+            <span class="bar-sparkle" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+      <p class="subtitle" id="subtitle">Тот самый день уже на подходе...</p>
+      <!-- кнопка появляется только в течение 7 дней после праздника (script.js) -->
+      <button id="replayBtn" class="replay-btn" style="display:none"
+        title="Ещё раз прожить последние 60 секунд перед праздником">ПОСМОТРЕТЬ ПОСЛЕДНЮЮ МИНУТКУ ЗАНОВО</button>
+    </section>
+
+    <div class="flash-overlay" aria-hidden="true"></div>
+    <div class="boom-text" id="boomText" aria-hidden="true">С 19-ЛЕТИЕМ!</div>
+    <canvas class="portal-canvas" id="portalCanvas" aria-hidden="true"></canvas>
+    
+    <footer>каждый день ближе к главному дню в году</footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

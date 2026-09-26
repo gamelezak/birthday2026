@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffb347" />
+  <title>С 19-летием!</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="congrats.css" />
+</head>
+<body class="party-body">
+  <main class="party-scene" id="partyScene" aria-label="Поздравление с 19-летием">
+    <div class="backgrounds" aria-hidden="true">
+      <div class="background-layer background-party is-active"></div>
+    </div>
+
+    <canvas id="fireworks" class="fireworks" aria-hidden="true"></canvas>
+    <div class="stars" id="stars" aria-hidden="true"></div>
+    <div class="confetti-layer" id="confetti" aria-hidden="true"></div>
+    <div class="balloon-layer" id="balloons" aria-hidden="true"></div>
+
+    <!-- декор: гирлянды и флажки -->
+    <div class="deco" aria-hidden="true">
+      <img class="garland garland-top" src="assets/garland.png" alt="" draggable="false" />
+      <img class="bunting bunting-left"  src="assets/bunting-side.png" alt="" draggable="false" />
+      <img class="bunting bunting-right" src="assets/bunting-side.png" alt="" draggable="false" />
+      <span class="spark sp1"></span>
+      <span class="spark sp2"></span>
+      <span class="spark sp3"></span>
+      <span class="spark sp4"></span>
+      <span class="spark sp5"></span>
+    </div>
+
+    <section class="party-card" id="partyCard">
+      <img class="card-sign" src="assets/sign-hbd.png" alt="Happy Birthday To You!" draggable="false" />
+      <div class="badge bounce-badge">Тот самый день настал</div>
+
+      <h1 class="party-title" id="partyTitle" aria-label="С 19-летием!">
+        <span class="ltr" style="--i:0">С</span>
+        <span class="ltr" style="--i:1">&nbsp;</span>
+        <span class="ltr" style="--i:2">1</span>
+        <span class="ltr" style="--i:3">9</span>
+        <span class="ltr" style="--i:4">&nbsp;</span>
+        <br>
+        <span class="ltr" style="--i:5">Л</span>
+        <span class="ltr" style="--i:6">Е</span>
+        <span class="ltr" style="--i:7">Т</span>
+        <span class="ltr" style="--i:8">И</span>
+        <span class="ltr" style="--i:9">Е</span>
+        <span class="ltr" style="--i:10">М</span>
+        <br>
+                <span class="ltr" style="--i:11">&nbsp;</span>
+        <span class="ltr" style="--i:12">Л</span>
+        <span class="ltr" style="--i:13">И</span>
+        <span class="ltr" style="--i:14">З</span>
+        <span class="ltr" style="--i:15">О</span>
+        <span class="ltr" style="--i:16">Н</span>
+        <span class="ltr" style="--i:17">Ь</span>
+        <span class="ltr" style="--i:18">К</span>
+        <span class="ltr" style="--i:19">А</span>
+        <span class="ltr bang" style="--i:20">!</span>
+      </h1>
+
+      <p class="party-sub" id="typedWish"></p>
+
+      <div class="cake-wrap" aria-hidden="true">
+        <div class="cake">
+          <img class="cake-img" src="assets/cake-lit.png" alt="" draggable="false" />
+          <img class="cake-img blown-layer" src="assets/cake-blown.png" alt="" draggable="false" />
+          <span class="smoke-spot s0"></span>
+          <span class="smoke-spot s1"></span>
+          <span class="smoke-spot s2"></span>
+        </div>
+        <p class="blow-hint" id="blowHint">Торт твой. Загадай самое заветное желание и задуй свечи</p>
+      </div>
+
+      <div class="wish-scroll hidden" id="wishScroll">
+        <p>Желание принято под роспись, без права отказа</p>
+        <p>Свечи погасли, значит, желание официально зарегистрировано.<br/>Пусть сбудется всё загаданное. А что не успело, то просто ещё в пути.</p>
+        <button class="btn btn-restart" id="relightBtn">Зажечь снова: желаний много не бывает</button>
+      </div>
+
+      <div class="party-actions">
+        <!-- кнопка перехода на страницу ожидания/отчёта убрана по просьбе именинницы -->
+        <button class="btn btn-surprise" id="surpriseBtn">Открыть главный сюрприз. Осторожно!</button>
+      </div>
+    </section>
+
+    <footer>сделано с любовью, терпением и фейерверками</footer>
+  </main>
+
+  <script src="congrats.js"></script>
+</body>
+</html>

@@ -1,0 +1,1553 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --pink: #ff6db3;
+  --pink-light: #ffd0e8;
+  --purple: #9d65e8;
+  --blue: #5aaeff;
+  --cream: #fff0cf;
+  --panel: rgba(10, 7, 48, .72);
+
+  --ui-primary: #b96f8d;
+  --ui-secondary: #927f99;
+  --ui-number: #d96f91;
+  --ui-label: #9b879f;
+  --ui-border: rgba(230, 157, 184, .72);
+  --ui-panel: rgba(255, 248, 244, .78);
+  --ui-box-top: rgba(255, 255, 255, .90);
+  --ui-box-bottom: rgba(250, 236, 243, .88);
+  --ui-shadow: rgba(178, 108, 137, .20);
+  --ui-text-shadow: rgba(255, 255, 255, .85);
+}
+
+.scene.theme-day {
+  --ui-primary: #b96f8d;
+  --ui-secondary: #927f99;
+  --ui-number: #d96f91;
+  --ui-label: #9b879f;
+  --ui-border: rgba(230, 157, 184, .72);
+  --ui-panel: rgba(255, 248, 244, .78);
+  --ui-box-top: rgba(255, 255, 255, .90);
+  --ui-box-bottom: rgba(250, 236, 243, .88);
+  --ui-shadow: rgba(178, 108, 137, .20);
+  --ui-text-shadow: rgba(255, 255, 255, .88);
+}
+
+.scene.theme-night {
+  --ui-primary: #ffe7f5;
+  --ui-secondary: #d9c6ff;
+  --ui-number: #fff5fc;
+  --ui-label: #cbb8ff;
+  --ui-border: rgba(255, 133, 195, .65);
+  --ui-panel: rgba(10, 7, 48, .72);
+  --ui-box-top: rgba(77, 40, 135, .96);
+  --ui-box-bottom: rgba(21, 17, 70, .96);
+  --ui-shadow: rgba(0, 0, 0, .40);
+  --ui-text-shadow: rgba(131, 44, 148, .85);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: #05051e;
+  color: var(--ui-primary);
+  font-family: 'Press Start 2P', monospace;
+}
+
+.scene {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  background: #d9e9f2;
+}
+
+.backgrounds {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  overflow: hidden;
+}
+
+.background-layer {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 2.8s ease, filter 2.8s ease, transform 7s ease;
+  will-change: opacity, filter, transform;
+}
+
+.background-day {
+  background-image: url('assets/birthday-bg.png');
+  filter: saturate(.92) brightness(1.02);
+}
+
+.background-night {
+  background-image: url('assets/birthday-bg-night.png');
+  filter: saturate(.90) brightness(.95);
+}
+
+.background-layer.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(16,72,100,.08));
+  z-index: -2;
+}
+
+.scene::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 15vh;
+  background: linear-gradient(180deg, transparent, rgba(4, 3, 29, .30));
+  z-index: -1;
+  pointer-events: none;
+}
+
+.scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(16,72,100,.08));
+  z-index: -2;
+}
+
+.scene::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 15vh;
+  background: linear-gradient(180deg, transparent, rgba(4, 3, 29, .48));
+  z-index: -1;
+  pointer-events: none;
+}
+
+.sky-overlay { position: absolute; inset: 0; pointer-events: none; }
+
+.stars { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.star {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  left: var(--x);
+  top: var(--y);
+  background: #fff8db;
+  box-shadow: 0 0 7px rgba(255,255,220,.8);
+  animation: twinkle var(--d) steps(2, end) infinite;
+  animation-delay: var(--delay);
+}
+.star.big { width: calc(var(--s) * 1.7); height: calc(var(--s) * 1.7); }
+
+@keyframes twinkle {
+  0%, 100% { opacity: .25; transform: scale(.7); }
+  45% { opacity: 1; transform: scale(1.25); }
+  70% { opacity: .45; transform: scale(.9); }
+}
+
+
+.candle-glow {
+  position: absolute;
+  width: 230px;
+  height: 160px;
+  left: 14%;
+  bottom: 18%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 187, 73, .20), rgba(255, 103, 190, 0) 68%);
+  mix-blend-mode: screen;
+  animation: candle-pulse .8s steps(3, end) infinite alternate;
+  pointer-events: none;
+}
+@keyframes candle-pulse {
+  from { transform: scale(.92); opacity: .65; }
+  to { transform: scale(1.08); opacity: 1; }
+}
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  .candle-glow, .countdown-card, .pixel-hearts, .colon { animation: none; }
+  .scene, .background-layer, .countdown-card { transition: none; }
+}
+
+.countdown-card {
+  position: relative;
+  z-index: 2;
+  width: min(860px, 92vw);
+  margin-top: -2vh;
+  padding: clamp(24px, 4vw, 52px);
+  text-align: center;
+  background: var(--ui-panel);
+  border: 4px solid var(--ui-border);
+  box-shadow: 0 0 0 5px var(--ui-shadow), 0 18px 60px rgba(0,0,0,.22), inset 0 0 35px rgba(255, 120, 180, .08);
+  transition: background 2.8s ease, border-color 2.8s ease, box-shadow 2.8s ease;
+  backdrop-filter: blur(4px);
+  animation: card-float 5s ease-in-out infinite;
+}
+@keyframes card-float { 50% { transform: translateY(-5px); } }
+
+.badge {
+  display: inline-block;
+  margin-bottom: 22px;
+  padding: 9px 12px;
+  color: var(--ui-primary); transition: color 2.8s ease, background-color 2.8s ease, border-color 2.8s ease, box-shadow 2.8s ease;
+  background: rgba(255, 231, 241, .90);
+  border: 3px solid var(--ui-border);
+  box-shadow: 5px 5px 0 rgba(176, 106, 139, .42);
+  font-size: clamp(8px, 1.3vw, 12px);
+}
+
+h1 {
+  margin: 0;
+  color: var(--ui-primary);
+  transition: color 2.8s ease, text-shadow 2.8s ease;
+  font-size: clamp(19px, 3.5vw, 34px);
+  line-height: 1.5;
+  text-shadow: 3px 3px 0 var(--ui-text-shadow), 0 0 14px rgba(255,150,190,.30);
+}
+
+.subtitle {
+  margin: 15px 0 30px;
+  color: var(--ui-secondary);
+  transition: color 2.8s ease;
+  font-size: clamp(8px, 1.5vw, 12px);
+}
+
+.timer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(7px, 1.5vw, 18px);
+}
+.time-box {
+  min-width: clamp(68px, 11vw, 122px);
+  padding: clamp(12px, 2vw, 20px) 8px;
+  background: linear-gradient(180deg, var(--ui-box-top), var(--ui-box-bottom));
+  border: 3px solid var(--ui-border);
+  box-shadow: 0 0 0 3px var(--ui-shadow), inset 0 -7px 0 rgba(0,0,0,.10);
+  transition: background 2.8s ease, border-color 2.8s ease, box-shadow 2.8s ease;
+}
+.time-box span {
+  display: block;
+  color: var(--ui-number);
+  transition: color 2.8s ease, text-shadow 2.8s ease;
+  font-size: clamp(17px, 3.7vw, 38px);
+  text-shadow: 2px 2px 0 var(--ui-text-shadow);
+}
+.time-box small {
+  display: block;
+  margin-top: 9px;
+  color: var(--ui-label);
+  transition: color 2.8s ease;
+  font-size: clamp(6px, 1vw, 9px);
+}
+.colon { color: var(--ui-primary); transition: color 2.8s ease; font-size: clamp(18px, 3vw, 34px); animation: blink 1s steps(2,end) infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+
+.progress-wrap { margin: 29px auto 22px; width: min(700px, 100%); }
+.progress-label { display:flex; justify-content:space-between; gap:15px; margin-bottom:9px; color:var(--ui-secondary); transition: color 2.8s ease; font-size:8px; }
+.progress { height: 18px; padding: 3px; background: rgba(244, 236, 242, .72); border: 3px solid var(--ui-border); transition: background-color 2.8s ease, border-color 2.8s ease; }
+.progress-bar {
+  height: 100%; width: 0%;
+  background: repeating-linear-gradient(90deg, #ff75b9 0 14px, #b65be1 14px 28px);
+  box-shadow: 0 0 15px rgba(255,115,190,.45);
+  transition: width .8s ease;
+}
+
+
+.pixel-hearts { position:absolute; right: 4vw; top: 16vh; display:flex; gap:13px; color:#ff72bb; opacity:.8; animation: hearts 4s ease-in-out infinite; pointer-events:none; }
+.pixel-hearts span:nth-child(2), .pixel-hearts span:nth-child(4) { color:#9ad5ff; }
+@keyframes hearts { 50% { transform: translateY(-11px); } }
+
+footer {
+  z-index: 2;
+  position:absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  text-align:center;
+  color:var(--ui-secondary); transition: color 2.8s ease;
+  font-size: 7px;
+  opacity:.8;
+  text-shadow: 1px 1px 0 rgba(255,255,255,.55);
+}
+
+@media (max-width: 760px) {
+  .scene { background-position: 48% center; }
+  
+
+.countdown-card { padding: 22px 14px; }
+  .timer { gap: 4px; }
+  .time-box { min-width: 64px; }
+  .candle-glow { left: 8%; bottom: 14%; transform: scale(.7); }
+}
+
+@media (max-width: 520px) {
+  .scene { min-height: 100svh; }
+  
+
+.countdown-card { width: 94vw; margin-top: -8vh; }
+  .time-box { min-width: 55px; border-width: 2px; box-shadow:0 0 0 2px var(--ui-shadow), inset 0 -5px 0 rgba(0,0,0,.10); }
+  .time-box small { font-size: 5px; }
+  .colon { font-size: 18px; }
+}
+
+
+:root {
+  --ui-card: rgba(255, 250, 247, .80);
+  --ui-card-border: rgba(239, 194, 210, .92);
+  --ui-badge: rgba(255, 248, 244, .96);
+  --ui-badge-border: #efc4d2;
+  --ui-title: #c27896;
+  --ui-subtitle: #a58ca2;
+  --ui-box: rgba(255, 253, 251, .94);
+  --ui-box-border: #ecc9d7;
+  --ui-number: #d47d9a;
+  --ui-small: #ad97a7;
+  --ui-colon: #dda0b8;
+  --ui-progress-bg: rgba(255, 249, 248, .92);
+  --ui-progress-border: #e5cbd6;
+  --ui-shadow: rgba(182, 131, 151, .18);
+}
+
+.scene, .countdown-card, .badge, h1, .subtitle, .time-box, .time-box span,
+.time-box small, .colon, .progress-label, .progress, .progress-bar, .pixel-hearts, footer {
+  transition: background-color 2.8s ease, background 2.8s ease, border-color 2.8s ease,
+              color 2.8s ease, box-shadow 2.8s ease, text-shadow 2.8s ease;
+}
+
+.countdown-card {
+  background: var(--ui-card);
+  border-color: var(--ui-card-border);
+  box-shadow:
+    0 0 0 5px rgba(255, 255, 255, .42),
+    0 18px 50px var(--ui-shadow),
+    inset 0 0 26px rgba(255, 220, 231, .28);
+}
+
+.badge {
+  background: var(--ui-badge);
+  border-color: var(--ui-badge-border);
+}
+
+h1 { color: var(--ui-title); }
+.subtitle { color: var(--ui-subtitle); }
+.time-box { background: var(--ui-box); border-color: var(--ui-box-border); }
+.time-box span { color: var(--ui-number); }
+.time-box small { color: var(--ui-small); }
+.colon { color: var(--ui-colon); }
+.progress-label { color: #a48698; }
+.progress { background: var(--ui-progress-bg); border-color: var(--ui-progress-border); }
+.progress-bar {
+  background: #efabc0;
+  box-shadow: 0 0 12px rgba(225, 166, 192, .28);
+}
+
+.scene.theme-day .badge {
+  color: #b86f8d;
+  box-shadow: 4px 4px 0 rgba(207, 147, 168, .30);
+}
+.scene.theme-day h1 {
+  color: #c27896;
+  text-shadow: 2px 2px 0 rgba(255,255,255,.88), 0 0 12px rgba(244, 170, 195, .24);
+}
+.scene.theme-day .subtitle { color: #a58ca2; }
+.scene.theme-day .time-box span {
+  color: #d47d9a;
+  text-shadow: 2px 2px 0 rgba(255,255,255,.90);
+}
+.scene.theme-day .time-box small { color: #ad97a7; }
+.scene.theme-day .colon { color: #dda0b8; }
+.scene.theme-day .progress-label { color: #a48698; }
+.scene.theme-day footer {
+  color: #a68e9d;
+  text-shadow: 1px 1px 0 rgba(255,255,255,.62);
+}
+
+.scene.theme-night {
+  --ui-card: rgba(28, 22, 63, .76);
+  --ui-card-border: rgba(190, 139, 221, .72);
+  --ui-badge: rgba(64, 47, 104, .86);
+  --ui-badge-border: #a98acb;
+  --ui-title: #f4d8ff;
+  --ui-subtitle: #d6c5eb;
+  --ui-box: rgba(31, 23, 70, .84);
+  --ui-box-border: #a989cf;
+  --ui-number: #ffe4f4;
+  --ui-small: #cdbbe4;
+  --ui-colon: #efa6d3;
+  --ui-progress-bg: rgba(20, 14, 53, .86);
+  --ui-progress-border: #7856a7;
+  --ui-shadow: rgba(8, 4, 31, .42);
+}
+
+.scene.theme-night .badge { color: #f5eafa; box-shadow: 4px 4px 0 rgba(57, 33, 94, .65); }
+.scene.theme-night h1 { text-shadow: 2px 2px 0 rgba(70, 31, 88, .9); }
+.scene.theme-night .progress-bar {
+  background: #648fca;
+  box-shadow: 0 0 14px rgba(180, 116, 215, .35);
+}
+.scene.theme-night .pixel-hearts { color: #ef8fbe; }
+.scene.theme-night .pixel-hearts span:nth-child(2),
+.scene.theme-night .pixel-hearts span:nth-child(4) { color: #8bc8ef; }
+.scene.theme-night footer { color: #efe1f5; text-shadow: 2px 2px 0 rgba(30, 14, 54, .75); }
+
+/* ============================================================
+   Ночные улучшения: серебряная пыль, фонарики L4+, «рассвет» L5
+   (солнце и луна с ореолами убраны по просьбе Именинницы)
+   ============================================================ */
+
+/* общий класс декоративных слоёв: не перехватывают клики, ниже карточки */
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1; /* карточка — z-index: 2, интерактив всегда поверх */
+}
+
+
+.stars, .candle-glow {
+  opacity: 0;
+  transition: opacity 2.8s ease;
+}
+.scene.theme-night .stars, .scene.theme-night .candle-glow { opacity: 1; }
+
+
+@media (max-width: 760px) {
+  .scene { background-position: center center; }
+}
+
+@media (max-width: 520px) {
+  .scene { min-height: 100svh; }
+  .countdown-card { width: 94vw; margin-top: -8vh; }
+  .time-box { min-width: 55px; }
+  .time-box small { font-size: 5px; }
+  .colon { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .candle-glow, .countdown-card, .pixel-hearts, .colon, .background-layer,
+  .scene, .badge, h1, .subtitle, .time-box, .time-box span, .time-box small,
+  .progress-label, .progress, .progress-bar, footer { animation: none; transition: none; }
+}
+
+
+.bird-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 1.8s ease;
+}
+
+.scene.theme-night .bird-layer {
+  opacity: 0;
+}
+
+.bird {
+  position: absolute;
+  left: 0;
+  top: var(--bird-y);
+  width: 160px;
+  height: 120px;
+  animation: bird-flight var(--bird-duration) linear forwards;
+  animation-delay: var(--bird-delay);
+  will-change: transform;
+}
+
+.bird-sprite {
+  display: block;
+  position: relative;
+  width: 140px;
+  height: 110px;
+  background-image: url('assets/birds/bird_fly_clean_16.png');
+  background-repeat: no-repeat;
+  /* кадры спрайта (по 140px) выровнены по левому краю полос 150px */
+  background-position: 0 0;
+  background-size: 2400px 120px;
+  image-rendering: pixelated;
+  animation: bird-wings var(--bird-flap, 1.45s) steps(16, end) infinite;
+  will-change: background-position;
+  filter: drop-shadow(2px 3px 0 rgba(74, 91, 145, .12));
+  transform: scale(var(--bird-scale));
+  transform-origin: center center;
+}
+
+.bird.flip .bird-sprite {
+  transform: scaleX(-1) scale(var(--bird-scale));
+}
+
+/* шаги сдвигают окно на 150px за кадр; последний шаг уходит за полосу и
+   мгновенно возвращается к нулю — все 16 кадров проигрываются равномерно */
+@keyframes bird-wings {
+  from { background-position-x: 0; }
+  to   { background-position-x: -2400px; }
+}
+
+@keyframes bird-flight {
+  0% {
+    transform: translate3d(-180px, 0, 0);
+    opacity: 0;
+  }
+  5% { opacity: 1; }
+  22% {
+    transform: translate3d(18vw, var(--bird-drift-a), 0);
+  }
+  48% {
+    transform: translate3d(48vw, var(--bird-drift-b), 0);
+  }
+  74% {
+    transform: translate3d(78vw, var(--bird-drift-c), 0);
+  }
+  95% { opacity: 1; }
+  100% {
+    transform: translate3d(calc(100vw + 220px), var(--bird-drift-d), 0);
+    opacity: 0;
+  }
+}
+
+@keyframes bird-flight-reverse {
+  0% {
+    transform: translate3d(calc(100vw + 220px), 0, 0);
+    opacity: 0;
+  }
+  5% { opacity: 1; }
+  26% {
+    transform: translate3d(76vw, var(--bird-drift-a), 0);
+  }
+  52% {
+    transform: translate3d(48vw, var(--bird-drift-b), 0);
+  }
+  78% {
+    transform: translate3d(18vw, var(--bird-drift-c), 0);
+  }
+  95% { opacity: 1; }
+  100% {
+    transform: translate3d(-220px, var(--bird-drift-d), 0);
+    opacity: 0;
+  }
+}
+
+.bird.flip {
+  animation-name: bird-flight-reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bird-layer { display: none; }
+}
+
+/* ============ КРЕАТИВНЫЙ ПЕРЕХОД ПОСЛЕ ТАЙМЕРА ============ */
+/* Портал, раскрывающийся спиралью и утягивающий на страницу праздника */
+.portal-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 95;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.portal-canvas.is-open {
+  opacity: 1;
+  animation: portal-pulse 1.6s ease-in forwards;
+}
+
+@keyframes portal-pulse {
+  0%   { filter: brightness(1); }
+  70%  { filter: brightness(1.25); }
+  100% { filter: brightness(1.5); }
+}
+
+/* Конфетти-салют поверх сцены во время перехода */
+.transition-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.transition-confetti span {
+  position: absolute;
+  top: -3vh;
+  left: var(--x, 50vw);
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: rotate(var(--r, 0deg));
+  animation: confetti-fall var(--dur, 2s) linear var(--dly, 0s) forwards;
+}
+
+.transition-confetti span.round {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
+  }
+  100% {
+    opacity: 0.85;
+    transform: translate3d(calc(var(--r, 0deg) / 12), 108vh, 0) rotate(calc(var(--r, 0deg) * 2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-canvas, .transition-confetti { display: none; }
+}
+
+/* ============================================================
+   АНИМАЦИИ, КОТОРЫЕ ПРОБУЖДАЮТСЯ ПО МЕРЕ ПРИБЛИЖЕНИЯ ПРАЗДНИКА
+   data-proximity на .scene: 0..5; .party-border-on на body (с L3)
+   ============================================================ */
+
+/* --- падающие звёзды: canvas над фоном, под карточкой --- */
+.shooting-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* --- северное сияние: проявляется с L4 (за час до), только ночью --- */
+.aurora {
+  position: absolute;
+  inset: -6% -6% auto -6%;
+  height: 48vh;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 4s ease;
+  overflow: hidden;
+  filter: blur(26px);
+}
+.aurora i {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  height: 55%;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  animation: aurora-wave 11s ease-in-out infinite alternate;
+}
+.aurora i:nth-child(1) {
+  top: 4%;
+  background: radial-gradient(ellipse at 30% 100%, rgba(94, 232, 183, .35), transparent 70%);
+  animation-duration: 10s;
+}
+.aurora i:nth-child(2) {
+  top: 18%;
+  background: radial-gradient(ellipse at 65% 100%, rgba(127, 196, 255, .30), transparent 70%);
+  animation-duration: 14s;
+  animation-delay: -4s;
+}
+.aurora i:nth-child(3) {
+  top: 0;
+  background: radial-gradient(ellipse at 45% 100%, rgba(168, 111, 232, .28), transparent 72%);
+  animation-duration: 17s;
+  animation-delay: -8s;
+}
+@keyframes aurora-wave {
+  from { transform: translateX(-6%) skewX(-6deg) scaleY(.9); }
+  to   { transform: translateX(6%) skewX(7deg) scaleY(1.15); }
+}
+.scene[data-proximity="4"] .aurora,
+.scene[data-proximity="5"] .aurora { opacity: 1; }
+.scene.theme-day .aurora { opacity: 0 !important; }
+
+/* --- золотая пыль (L1): лёгкие искринки, поднимающиеся вверх --- */
+.dust-motes {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dust-motes i {
+  position: absolute;
+  bottom: -12px;
+  left: var(--x, 50%);
+  width: var(--s, 3px);
+  height: var(--s, 3px);
+  border-radius: 50%;
+  background: #ffe9a8;
+  box-shadow: 0 0 8px rgba(255, 214, 130, .9);
+  opacity: 0;
+  animation: dust-rise var(--dur, 9s) linear forwards;
+}
+@keyframes dust-rise {
+  0%   { opacity: 0;  transform: translate3d(0, 0, 0) scale(.6); }
+  12%  { opacity: .9; }
+  70%  { opacity: .7; transform: translate3d(calc(var(--drift, 0px) * .6), -72vh, 0) scale(1); }
+  100% { opacity: 0;  transform: translate3d(var(--drift, 0px), -102vh, 0) scale(.5); }
+}
+
+/* --- светлячки (L4): мягко пульсирующие тёплые огоньки --- */
+.fireflies {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+.scene[data-proximity="4"] .fireflies,
+.scene[data-proximity="5"] .fireflies { opacity: 1; }
+.scene.theme-day .fireflies { opacity: .55; }
+/* ночью светлячков почти не видно — их сменяют фонарики и лунная пыль */
+.scene.theme-night .fireflies { opacity: .75; }
+.firefly {
+  position: absolute;
+  left: var(--fx, 50%);
+  top: var(--fy, 50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffef9e;
+  box-shadow: 0 0 10px 3px rgba(255, 226, 122, .75);
+  animation: firefly-float var(--fdur, 6s) ease-in-out var(--fdel, 0s) infinite alternate;
+}
+@keyframes firefly-float {
+  0%   { transform: translate3d(0, 0, 0) scale(.7); opacity: .25; }
+  30%  { opacity: 1; }
+  60%  { transform: translate3d(var(--famp, 24px), calc(var(--famp, 24px) * -.7), 0) scale(1.1); opacity: .8; }
+  100% { transform: translate3d(calc(var(--famp, 24px) * -.6), calc(var(--famp, 24px) * .5), 0) scale(.85); opacity: .3; }
+}
+
+ в предрассветную фиолетовую дымку --- */
+.scene.theme-night .countdown-card {
+  animation: card-float 5s ease-in-out infinite, night-card-glow 7.5s ease-in-out infinite;
+}
+@keyframes night-card-glow {
+  0%, 100% { box-shadow: 0 0 0 5px rgba(150, 120, 220, .18), 0 18px 50px var(--ui-shadow), inset 0 0 26px rgba(160, 120, 255, .10); }
+  50%      { box-shadow: 0 0 0 5px rgba(150, 120, 220, .18), 0 22px 66px var(--ui-shadow), inset 0 0 44px rgba(170, 130, 255, .30); }
+}
+
+/* --- звёзды ночью: серебристая подсветка и лёгкий «прилив» блеска --- */
+.scene.theme-night .star { background: #eaf2ff; box-shadow: 0 0 8px rgba(200, 220, 255, .9); }
+.scene.theme-night .stars { filter: drop-shadow(0 0 6px rgba(180, 200, 255, .35)); }
+
+/* --- падающие звёзды ночью оставляют серебряный след + мерцание --- */
+.scene.theme-night .shooting-stars { filter: drop-shadow(0 0 6px rgba(190, 210, 255, .55)); }
+
+/* --- созвездие: далеко от луны (правый верх), чтобы не пересекать её ауру.
+   Линии «прорисовываются», когда праздник близко (L3+), ночью --- */
+.constellation {
+  position: absolute;
+  top: 10vh;
+  right: 8vw;
+  left: auto;
+  width: min(240px, 34vw);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+.scene.night-sky-on .constellation { opacity: .35; }
+.scene.night-sky-on[data-proximity="3"] .constellation,
+.scene.night-sky-on[data-proximity="4"] .constellation,
+.scene.night-sky-on[data-proximity="5"] .constellation { opacity: .9; }
+.constellation svg { width: 100%; height: auto; overflow: visible; }
+.constellation polyline {
+  fill: none;
+  stroke: rgba(210, 225, 255, .8);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  transition: stroke-dashoffset 4s ease;
+}
+.scene.night-sky-on[data-proximity="3"] .constellation polyline,
+.scene.night-sky-on[data-proximity="4"] .constellation polyline,
+.scene.night-sky-on[data-proximity="5"] .constellation polyline { stroke-dashoffset: 0; }
+.constellation circle {
+  fill: #f2f6ff;
+  filter: drop-shadow(0 0 4px rgba(200, 220, 255, .9));
+  animation: const-twinkle 3.4s ease-in-out infinite;
+}
+.constellation circle:nth-child(odd) { animation-delay: -1.7s; }
+.constellation circle:nth-child(3n) { animation-duration: 4.6s; }
+@keyframes const-twinkle {
+  0%, 100% { opacity: .45; }
+  50% { opacity: 1; }
+}
+
+/* --- небесные фонарики (L4+, только ночью): тёплые огни всплывают снизу --- */
+.lanterns,
+#lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.sky-lantern {
+  --ls: 1;
+  position: absolute;
+  bottom: -90px;
+  left: var(--lx, 50vw);
+  width: 26px;
+  height: 34px;
+  transform: scale(var(--ls));
+  animation: lantern-up var(--ldur, 20s) linear forwards;
+  will-change: transform;
+}
+.sky-lantern::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 6px;
+  border-radius: 46% 46% 40% 40% / 52% 52% 48% 48%;
+  background:
+    radial-gradient(circle at 50% 62%, rgba(255, 236, 170, .95) 0 34%, rgba(255, 190, 110, .8) 60%, rgba(255, 150, 90, .55) 100%);
+  box-shadow: 0 0 18px 6px rgba(255, 190, 120, .5), inset 0 -5px 8px rgba(200, 90, 40, .35);
+}
+.sky-lantern::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 8px;
+  height: 5px;
+  margin-left: -4px;
+  border-radius: 0 0 4px 4px;
+  background: rgba(120, 60, 30, .8);
+}
+@keyframes lantern-up {
+  0%   { transform: translate3d(0, 0, 0) scale(var(--ls)) rotate(-2deg); opacity: 0; }
+  10%  { opacity: 1; }
+  35%  { transform: translate3d(calc(var(--lsway, 20px) * .6), -40vh, 0) scale(var(--ls)) rotate(3deg); }
+  65%  { transform: translate3d(calc(var(--lsway, 20px) * -.4), -76vh, 0) scale(var(--ls)) rotate(-3deg); }
+  90%  { opacity: .9; }
+  100% { transform: translate3d(var(--lsway, 20px), -122vh, 0) scale(var(--ls)) rotate(2deg); opacity: 0; }
+}
+/* чем ближе финал — тем чаще салют из фонариков */
+.scene[data-proximity="5"] .sky-lantern { animation-duration: calc(var(--ldur, 20s) * .65); }
+
+/* --- серебряная лунная пыль (canvas-слой рисуется в script.js только ночью) --- */
+/* анимация «мерцания» фона отключена: JS-«рассвет» (animateNightDawn) управляет
+   inline-фильтром ночного слоя, и CSS-анимация перебивала бы его своим фильтром */
+
+/* --- облака: днём белые и быстрые (60s), ночью — тёмно-синие (#2a2f55) и медленные (120s) --- */
+.clouds {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.cloud {
+  position: absolute;
+  top: var(--cy, 12vh);
+  left: -30vw;
+  width: var(--cw, 220px);
+  height: calc(var(--cw, 220px) * .38);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255,255,255,.9), rgba(255,255,255,.55) 62%, transparent 78%);
+  filter: blur(6px);
+  opacity: .8;
+  animation: cloud-drift var(--cdur, 60s) linear infinite;
+  animation-delay: var(--cdel, 0s);
+}
+.cloud-1 { --cy: 10vh; --cw: 260px; --cdur: 60s; --cdel: -12s; }
+.cloud-2 { --cy: 24vh; --cw: 180px; --cdur: 60s; --cdel: -40s; }
+.cloud-3 { --cy: 6vh;  --cw: 320px; --cdur: 60s; --cdel: -70s; }
+@keyframes cloud-drift {
+  from { transform: translateX(0) scaleX(1); }
+  50%  { transform: translateX(62vw) scaleX(1.06); }
+  to   { transform: translateX(130vw) scaleX(1); }
+}
+.scene.theme-night .cloud {
+  /* ночные облака — тёмно-синие блобы, скорость вдвое медленнее (120s) */
+  background: radial-gradient(closest-side, #2a2f55, rgba(42, 47, 85, .55) 60%, transparent 78%);
+  animation-duration: 120s;
+  opacity: .5;
+}
+/* у самого финиша облака разгоняются — «праздничный ветер» (×0.6 длительности) */
+.scene.prox-l4 .cloud,
+.scene.prox-l5 .cloud { animation-duration: calc(var(--cdur) * .6); }
+.scene.theme-night.prox-l4 .cloud,
+.scene.theme-night.prox-l5 .cloud { animation-duration: calc(120s * .6); }
+
+/* --- воздушные шары (L2): CSS-шарики с бликом и ниткой, всплывают снизу --- */
+.balloon-rig {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.float-balloon {
+  --bc: #ff6db3;
+  position: absolute;
+  bottom: -170px;
+  left: var(--bx, 50vw);
+  width: 46px;
+  height: 58px;
+  transform: scale(var(--bs, 1));
+  animation: balloon-up var(--bdur, 16s) linear forwards;
+  will-change: transform;
+}
+.float-balloon::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 14px;
+  border-radius: 50% 50% 48% 48% / 56% 56% 44% 44%;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255,255,255,.85) 0 12%, transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(0,0,0,.22) 0 25%, transparent 60%),
+    var(--bc);
+  box-shadow: inset -4px -6px 10px rgba(0,0,0,.18);
+}
+.float-balloon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 2px;
+  height: 52px;
+  margin-left: -1px;
+  background: repeating-linear-gradient(180deg, rgba(255,240,247,.75) 0 4px, transparent 4px 8px);
+  transform-origin: top center;
+  animation: balloon-string 2.6s ease-in-out infinite alternate;
+}
+@keyframes balloon-string {
+  from { transform: rotate(-7deg); }
+  to   { transform: rotate(7deg); }
+}
+@keyframes balloon-up {
+  0%   { transform: translate3d(0, 0, 0) scale(var(--bs, 1)); opacity: 0; }
+  8%   { opacity: .95; }
+  20%  { transform: translate3d(calc(var(--bsway, 26px) * .2), -24vh, 0) scale(var(--bs, 1)) rotate(-3deg); }
+  35%  { transform: translate3d(var(--bsway, 26px), -46vh, 0) scale(var(--bs, 1)) rotate(4deg); }
+  50%  { transform: translate3d(calc(var(--bsway, 26px) * .1), -64vh, 0) scale(var(--bs, 1)) rotate(-2deg); }
+  65%  { transform: translate3d(calc(var(--bsway, 26px) * -.7), -84vh, 0) scale(var(--bs, 1)) rotate(-4deg); }
+  80%  { transform: translate3d(calc(var(--bsway, 26px) * -.2), -104vh, 0) scale(var(--bs, 1)) rotate(3deg); }
+  92%  { opacity: .95; }
+  100% { transform: translate3d(0, -135vh, 0) scale(var(--bs, 1)); opacity: 0; }
+}
+/* на средних уровнях приближения шары всплывают быстрее — «нетерпение» праздника */
+.scene[data-proximity="3"] .float-balloon { animation-duration: calc(var(--bdur, 16s) * .85); }
+.scene[data-proximity="4"] .float-balloon { animation-duration: calc(var(--bdur, 16s) * .7); }
+.scene[data-proximity="5"] .float-balloon { animation-duration: calc(var(--bdur, 16s) * .55); }
+
+/* --- гирлянда флажков (L3): «развешивается» слева направо по верху --- */
+.bunting-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 46px;
+  z-index: 3;
+  display: flex;
+  justify-content: space-around;
+  pointer-events: none;
+  background: transparent;   /* полностью прозрачный блок — видны только флажки */
+  opacity: 0;
+  transform: translateY(-14px);
+  transition: opacity 1.2s ease, transform 1.2s cubic-bezier(.2, 1.3, .4, 1);
+}
+.scene[data-proximity="3"] .bunting-row,
+.scene[data-proximity="4"] .bunting-row,
+.scene[data-proximity="5"] .bunting-row { opacity: 1; transform: translateY(0); }
+.bunting-row::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #c86fae, #8a5ad1, #c86fae);
+  border-radius: 2px;
+}
+.flag {
+  position: relative;
+  margin-top: 5px;
+  width: 0;
+  height: 0;
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-top: 22px solid #ff6db3;
+  transform-origin: top center;
+  animation: flag-swing 2.8s ease-in-out infinite alternate;
+  opacity: .95;
+}
+.flag:nth-child(4n+2) { border-top-color: #ffd98a; }
+.flag:nth-child(4n+3) { border-top-color: #7fc4ff; }
+.flag:nth-child(4n+4) { border-top-color: #5ee8b7; }
+@keyframes flag-swing {
+  from { transform: rotate(calc(var(--frot, 0deg) - 5deg)); }
+  to   { transform: rotate(calc(var(--frot, 0deg) + 5deg)); }
+}
+
+/* --- праздная неоновая рамка экрана (L3+) — только на странице отсчёта --- */
+.scene.party-border-on::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 109, 179, .55),
+    inset 0 0 44px rgba(168, 111, 232, .35);
+  animation: border-glow 3.2s ease-in-out infinite alternate;
+}
+@keyframes border-glow {
+  from { box-shadow: inset 0 0 0 3px rgba(255, 109, 179, .55), inset 0 0 44px rgba(168, 111, 232, .35); }
+  to   { box-shadow: inset 0 0 0 3px rgba(255, 217, 138, .65), inset 0 0 60px rgba(127, 196, 255, .40); }
+}
+
+/* --- бегущие огоньки по прогресс-бару (L5) --- */
+.progress-bar { position: relative; overflow: hidden; }
+.bar-sparkle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -30%;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+  opacity: 0;
+}
+.scene[data-proximity="5"] .bar-sparkle {
+  opacity: 1;
+  animation: bar-run 1.1s linear infinite;
+}
+@keyframes bar-run {
+  to { left: 110%; }
+}
+
+/* ============ УЛУЧШЕНИЯ СУЩЕСТВУЮЩИХ АНИМАЦИЙ ============ */
+
+/* цифры таймера: выкатывание новой значения снизу вверх */
+.digit-roll {
+  display: block;
+  overflow: hidden;
+}
+.digit-roll em {
+  display: block;
+  font-style: normal;
+}
+.digit-roll em.pop {
+  animation: digit-pop .45s cubic-bezier(.15, 1.35, .4, 1);
+}
+@keyframes digit-pop {
+  0%   { transform: translateY(65%); opacity: .1; filter: blur(1px); }
+  60%  { transform: translateY(-6%); opacity: 1; filter: blur(0); }
+  100% { transform: translateY(0); }
+}
+
+/* карточка: дышащая тень-свечение в придачу к покачиванию */
+.countdown-card { animation: card-float 5s ease-in-out infinite, card-breathe 5s ease-in-out infinite; }
+@keyframes card-breathe {
+  50% { box-shadow: 0 0 0 5px rgba(255,255,255,.42), 0 26px 64px var(--ui-shadow), inset 0 0 34px rgba(255, 200, 231, .40); }
+}
+
+/* --- значок: переливающаяся радужная дорожка (только на странице отсчёта) --- */
+.scene .badge {
+  background: linear-gradient(90deg, #ffd0e8, #fff0cf, #d0ecff, #e8d0ff, #ffd0e8);
+  background-size: 300% 100%;
+  animation: badge-shimmer 6s linear infinite;
+}
+@keyframes badge-shimmer {
+  to { background-position: 300% 0; }
+}
+
+/* заголовок: мягкая неоновая пульсация свечения */
+h1 { animation: title-glow 4.5s ease-in-out infinite; }
+@keyframes title-glow {
+  50% { text-shadow: 3px 3px 0 var(--ui-text-shadow), 0 0 26px rgba(255,150,190,.55); }
+}
+
+/* прогресс-бар: объёмный глянец + медленно бегущая диагональная разметка */
+.progress-bar {
+  background-image: repeating-linear-gradient(115deg, rgba(255,255,255,.28) 0 8px, transparent 8px 20px);
+  animation: barberpole 3.5s linear infinite;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,.35), inset 0 -4px 0 rgba(0,0,0,.12), 0 0 12px rgba(225, 166, 192, .35);
+}
+@keyframes barberpole {
+  to { background-position: 40px 0; }
+}
+
+/* двоеточия: печатный «пульс» вместо простого мигания */
+.colon { animation: blink-pulse 1s steps(2, end) infinite; }
+@keyframes blink-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .3; transform: scale(.82); }
+}
+
+/* звёзды: изредка одна «подмигивает» крестиком */
+.star.big::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background:
+    linear-gradient(#fff8db, #fff8db) center / 1px 100% no-repeat,
+    linear-gradient(#fff8db, #fff8db) center / 100% 1px no-repeat;
+  opacity: 0;
+  animation: star-wink 7s steps(2, end) infinite;
+  animation-delay: var(--delay, 0s);
+}
+.star.big { position: absolute; }
+@keyframes star-wink {
+  0%, 92% { opacity: 0; transform: scale(.4) rotate(0deg); }
+  94%, 98% { opacity: .9; transform: scale(1) rotate(45deg); }
+  100% { opacity: 0; transform: scale(.4) rotate(90deg); }
+}
+
+/* финальный режим: счётчики скачут быстрее и ярче, чем раньше */
+body.final-mode .digit-roll em { animation-duration: .3s; }
+
+/* ======= ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ ПО МЕРЕ ПРИБЛИЖЕНИЯ ПРАЗДНИКА ======= */
+
+/* --- L2: лёгкий ветер — периодический наклон пыли и шаров --- */
+.scene[data-proximity="2"] .dust-motes i,
+.scene[data-proximity="3"] .dust-motes i { animation-name: dust-rise-windy; }
+@keyframes dust-rise-windy {
+  0%   { opacity: 0;  transform: translate3d(0, 0, 0) scale(.6); }
+  12%  { opacity: .9; }
+  45%  { transform: translate3d(calc(var(--drift, 0px) + 26px), -52vh, 0) scale(1); }
+  70%  { opacity: .7; transform: translate3d(calc(var(--drift, 0px) + 8px), -72vh, 0) scale(1); }
+  100% { opacity: 0;  transform: translate3d(calc(var(--drift, 0px) - 18px), -102vh, 0) scale(.5); }
+}
+
+/* --- L3: неоновая пульсация цифр таймера (за сутки до) --- */
+.scene[data-proximity="3"] .digit-roll em,
+.scene[data-proximity="4"] .digit-roll em,
+.scene[data-proximity="5"] .digit-roll em {
+  text-shadow: 0 0 14px rgba(255, 170, 220, .55);
+  animation: digit-pop .45s cubic-bezier(.15, 1.35, .4, 1), digit-neon 2.2s ease-in-out infinite;
+}
+@keyframes digit-neon {
+  50% { text-shadow: 0 0 22px rgba(255, 150, 210, .85), 0 0 46px rgba(150, 120, 255, .45); }
+}
+
+/* --- L4: конфетти-дождь сверху вниз (за час до) --- */
+.confetti-rain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  perspective: 600px;
+}
+.confetti-bit {
+  position: absolute;
+  top: -16px;
+  left: var(--cx, 50%);
+  width: var(--cw, 7px);
+  height: var(--ch, 11px);
+  background: var(--cc, #ff6db3);
+  opacity: 0;
+  border-radius: 1px;
+  animation: confetti-fall-down var(--cdur, 7s) linear forwards;
+}
+@keyframes confetti-fall-down {
+  0%   { opacity: 0; transform: translate3d(0, 0, 0) rotateX(0) rotateZ(0deg); }
+  8%   { opacity: .95; }
+  50%  { transform: translate3d(var(--csway, 30px), -50vh, 0) rotateX(180deg) rotateZ(200deg); }
+  100% { opacity: .8; transform: translate3d(calc(var(--csway, 30px) * -.6), 108vh, 0) rotateX(540deg) rotateZ(420deg); }
+}
+
+/* --- L5: мягкая радужная аура вокруг карточки (за минуту до) --- */
+.countdown-card::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg,
+    rgba(255, 100, 140, .55), rgba(255, 200, 90, .55), rgba(120, 255, 170, .55),
+    rgba(100, 190, 255, .55), rgba(200, 130, 255, .55), rgba(255, 100, 140, .55));
+  filter: blur(22px);
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.scene[data-proximity="5"] .countdown-card::before {
+  opacity: .8;
+  animation: aura-spin 7s linear infinite;
+}
+@keyframes aura-spin { to { transform: rotate(1turn); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .shooting-stars, .aurora, .dust-motes, .fireflies, .balloon-rig, .bunting-row,
+  .confetti-rain, .clouds, .constellation, .lanterns { display: none; }
+  .badge, h1, .progress-bar, .colon, .countdown-card, .flag, .digit-roll em,
+  .star.big::after, .bar-sparkle, body.party-border-on::after,
+  .scene[data-proximity="5"] .countdown-card::before { animation: none !important; }
+}
+
+/* ============================================================
+   ДОПОЛНИТЕЛЬНОЕ ОЖИВЛЕНИЕ — ДЕНЬ / НОЧЬ
+   ============================================================ */
+
+/* --- днём фон «дышит» теплом и лёгким зенитным свечением --- */
+/* (анимация day-bg-warmth не используется: её filter перебивал бы inline-стиль
+   JS-рассвета; достаточно пульсации солнечного пятна ниже) */
+/* солнечное пятно вверху справа — мягкое, пульсирующее */
+.scene.theme-day::before {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 240, 180, .30), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(16,72,100,.08));
+  animation: sun-pulse 8s ease-in-out infinite alternate;
+}
+@keyframes sun-pulse {
+  from { opacity: .8; }
+  to   { opacity: 1; }
+}
+
+/* --- ночью нижняя сумеречная кромка чуть гуще и «дышит» --- */
+.scene.theme-night::after {
+  background: linear-gradient(180deg, transparent, rgba(6, 4, 34, .62));
+  animation: dusk-breathe 9s ease-in-out infinite alternate;
+}
+@keyframes dusk-breathe {
+  from { opacity: .85; }
+  to   { opacity: 1; }
+}
+
+/* --- ночные цифры: холодное лунное послесвечение вместо тёплого розового --- */
+/* днём золотая пыль «танцует» вокруг нарисованного солнца (сгущается справа вверху) */
+.scene.theme-day .dust-motes i {
+  left: calc(80% + (var(--x, 50%) - 50%) * 0.42);
+}
+
+.scene.theme-night .digit-roll em.pop {
+  text-shadow: 0 0 14px rgba(170, 190, 255, .6);
+}
+/* digit-neon-night — холодное сине-голубое послесвечение цифр таймера ночью */
+.scene.theme-night[data-proximity="3"] .digit-roll em,
+.scene.theme-night[data-proximity="4"] .digit-roll em,
+.scene.theme-night[data-proximity="5"] .digit-roll em {
+  text-shadow: 0 0 18px rgba(140, 180, 255, .55);
+  animation: digit-pop .45s cubic-bezier(.15, 1.35, .4, 1), digit-neon-night 2.2s ease-in-out infinite;
+}
+@keyframes digit-neon-night {
+  0%, 100% { text-shadow: 0 0 18px rgba(140, 180, 255, .55); }
+  50% { text-shadow: 0 0 22px rgba(160, 180, 255, .85), 0 0 46px rgba(120, 220, 255, .45); }
+}
+
+/* --- ночью неоновая рамка экрана холодно-сиреневая (днём остаётся розовой) --- */
+.scene.theme-night.party-border-on::after {
+  animation: border-glow-night 3.2s ease-in-out infinite alternate;
+}
+@keyframes border-glow-night {
+  from { box-shadow: inset 0 0 0 3px rgba(150, 170, 255, .55), inset 0 0 44px rgba(110, 90, 220, .35); }
+  to   { box-shadow: inset 0 0 0 3px rgba(190, 230, 255, .65), inset 0 0 60px rgba(140, 120, 255, .40); }
+}
+
+/* --- ночью конфеттинки приглушённее и «посеребрённее» --- */
+.scene.theme-night .confetti-bit { opacity: .85; filter: saturate(.8) brightness(1.05); }
+/* --- ночью шариков нет: полностью скрыты (по просьбе Именинницы) --- */
+.scene.theme-night .float-balloon { display: none; }
+.scene.theme-night .dust-motes i { background: #cfdcff; box-shadow: 0 0 8px rgba(190, 205, 255, .85); }
+
+/* --- переход день→ночь: карточка плавно перекрашивается медленнее фона --- */
+.scene.theme-night .countdown-card { transition-duration: 3.4s; }
+
+/* ============================================================
+   prefers-reduced-motion — обнуляем ВСЕ новые анимации блока 34ecf56
+   (lantern-up, dusk-breathe…)
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .sky-lantern,
+  .scene.theme-night::after,
+  .scene.theme-day::before,
+  .cloud,
+  .digit-roll em { animation: none !important; }
+
+}
+
+/* ============================================================
+   УЛУЧШЕНИЯ АНИМАЦИЙ (проход «оживления»)
+   ============================================================ */
+
+/* --- карточка: покачивание стало плавным «дыханием» с лёгким наклоном --- */
+.countdown-card {
+  animation: card-float 6s cubic-bezier(.45, 0, .55, 1) infinite,
+             card-breathe 5s ease-in-out infinite;
+}
+@keyframes card-float {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  30%      { transform: translateY(-6px) rotate(-.25deg); }
+  62%      { transform: translateY(-3px) rotate(.2deg); }
+}
+
+/* --- цифры: выкатывание с мягким приземлением и вспышкой-ореолом --- */
+.digit-roll em.pop {
+  animation: digit-pop .55s cubic-bezier(.18, 1.5, .32, 1);
+}
+@keyframes digit-pop {
+  0%   { transform: translateY(78%) scale(.92); opacity: 0; filter: blur(2px); }
+  45%  { transform: translateY(-8%) scale(1.06); opacity: 1; filter: blur(0); }
+  70%  { transform: translateY(3%) scale(.99); }
+  100% { transform: translateY(0) scale(1); text-shadow: 2px 2px 0 var(--ui-text-shadow), 0 0 20px rgba(255,190,230,.65); }
+}
+
+/* --- заголовок: неон стал объёмнее, с двойным цветным сдвигом --- */
+@keyframes title-glow {
+  35%  { text-shadow: 3px 3px 0 var(--ui-text-shadow), 0 0 22px rgba(255,150,190,.5), -2px -2px 0 rgba(90,174,255,.18); }
+  70%  { text-shadow: 3px 3px 0 var(--ui-text-shadow), 0 0 34px rgba(190,140,255,.6), 2px -2px 0 rgba(255,217,138,.25); }
+}
+
+/* --- значок: переливы + лёгкая пружинка на каждом витке shimmer --- */
+.scene .badge { animation: badge-shimmer 6s linear infinite, badge-bob 3.2s ease-in-out infinite; }
+@keyframes badge-bob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50%      { transform: translateY(-3px) rotate(-.6deg); }
+}
+
+/* --- прогресс-бар: глянцевый блик, бегущий по диагонали --- */
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,.4) 46%, transparent 62%);
+  background-size: 220% 100%;
+  animation: bar-gloss 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes bar-gloss {
+  0%, 55% { background-position: 160% 0; }
+  90%, 100% { background-position: -80% 0; }
+}
+
+/* --- флажки гирлянды: волна «порыва ветра», идущая слева направо --- */
+.flag { animation: flag-swing 2.8s ease-in-out infinite alternate, flag-gust 7s ease-in-out infinite; }
+@keyframes flag-gust {
+  0%, 78%, 100% { margin-top: 5px; }
+  84% { margin-top: 2px; filter: brightness(1.15); }
+  90% { margin-top: 7px; filter: brightness(1); }
+}
+
+/* --- облака: покачивание по вертикали при дрейфе (было плоско) --- */
+@keyframes cloud-drift {
+  from { transform: translate3d(0, 0, 0) scaleX(1); }
+  25%  { transform: translate3d(32vw, -1.6vh, 0) scaleX(1.03); }
+  50%  { transform: translate3d(62vw, 1.2vh, 0) scaleX(1.06); }
+  75%  { transform: translate3d(96vw, -1vh, 0) scaleX(1.02); }
+  to   { transform: translate3d(130vw, 0, 0) scaleX(1); }
+}
+
+/* --- светлячки: пульс яркости поверх траектории (двойная анимация) --- */
+.firefly { animation: firefly-float var(--fdur, 6s) ease-in-out var(--fdel, 0s) infinite alternate,
+                      firefly-blip calc(var(--fdur, 6s) / 2.6) ease-in-out var(--fdel, 0s) infinite; }
+@keyframes firefly-blip {
+  0%, 100% { box-shadow: 0 0 10px 3px rgba(255, 226, 122, .75); }
+  50%      { box-shadow: 0 0 18px 6px rgba(255, 240, 160, .95); }
+}
+
+/* --- фонарики: тёплое «жаровое» мерцание пламени внутри --- */
+.sky-lantern::before { animation: lantern-flicker 2.2s ease-in-out infinite alternate; }
+@keyframes lantern-flicker {
+  from { filter: brightness(.92) saturate(.95); }
+  to   { filter: brightness(1.12) saturate(1.12); }
+}
+
+/* --- звёзды: крупные вспыхивают ярче остальных --- */
+.star.big { animation-duration: calc(var(--d) * .7); }
+
+/* --- птицы: планирование — крылья складываются дольше, чем машут --- */
+.bird-sprite { animation-timing-function: steps(16, end); }
+@keyframes bird-wings {
+  0%   { background-position: 0 0; }
+  62%  { background-position: -1400px 0; } /* активное махание первой половиной кадров */
+  100% { background-position: -2240px 0; }
+}
+
+/* --- свечение свечи под карточкой: неровное, «живое» (шаги + смещение) --- */
+@keyframes candle-pulse {
+  0%   { transform: scale(.92); opacity: .6; }
+  30%  { transform: scale(1.04) translateX(2px); opacity: .95; }
+  55%  { transform: scale(.97) translateX(-1px); opacity: .75; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+/* ============================================================
+   РЕЖИМ «ПОСЛЕДНЕЙ МИНУТКИ» — повтор финальных 60 секунд
+   (активируется script.js в течение 7 дней после праздника)
+   ============================================================ */
+
+/* кнопка повтора — видна только в «окне недели» (display ставит JS) */
+.replay-btn {
+  display: block;
+  margin: 18px auto 0;
+  font-family: inherit;
+  font-size: clamp(7px, 1.2vw, 10px);
+  color: #fff;
+  padding: 11px 14px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #a86fe8, #7b3fd1);
+  border: 3px solid #fff0f7;
+  box-shadow: 0 5px 0 #4d2388, 0 10px 22px rgba(0,0,0,.3);
+  transition: transform .12s ease, box-shadow .12s ease, filter .2s ease;
+  animation: replay-pulse 2.6s ease-in-out infinite;
+}
+.replay-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.replay-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #4d2388; }
+@keyframes replay-pulse {
+  50% { box-shadow: 0 5px 0 #4d2388, 0 0 26px rgba(190, 140, 255, .75); }
+}
+
+/* во время повтора сцена получает лёгкую виньетку-«нетерпение» */
+.scene.replay-on .countdown-card { outline: 3px dashed rgba(255, 217, 138, .0); }
+.scene.replay-on::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: inset 0 0 120px rgba(255, 140, 200, .18);
+  animation: replay-vignette 2.4s ease-in-out infinite alternate;
+}
+@keyframes replay-vignette {
+  from { box-shadow: inset 0 0 90px rgba(255, 140, 200, .12); }
+  to   { box-shadow: inset 0 0 160px rgba(255, 190, 120, .3); }
+}
+
+/* баннер-открытка по завершении повтора */
+.replay-banner {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 97;
+  width: min(640px, 94vw);
+  pointer-events: auto;
+  animation: banner-in .8s cubic-bezier(.2, 1.5, .4, 1) both;
+}
+.replay-banner-inner {
+  position: relative;
+  padding: clamp(16px, 3vw, 26px) clamp(16px, 3.4vw, 30px);
+  text-align: center;
+  color: var(--ui-primary);
+  background: linear-gradient(180deg, rgba(255, 248, 244, .96), rgba(255, 232, 244, .96));
+  border: 4px solid var(--ui-border);
+  box-shadow: 0 0 0 5px rgba(255, 217, 138, .35), 0 22px 60px rgba(0,0,0,.35);
+}
+.scene.theme-night .replay-banner-inner {
+  background: linear-gradient(180deg, rgba(30, 20, 66, .97), rgba(52, 26, 88, .97));
+  color: #ffe7f5;
+}
+.replay-banner b {
+  display: block;
+  font-size: clamp(10px, 2vw, 15px);
+  color: #e0559a;
+  text-shadow: 2px 2px 0 rgba(255, 217, 138, .6);
+  animation: rb-title 1.2s ease-in-out infinite alternate;
+}
+.scene.theme-night .replay-banner b { color: #ffd98a; text-shadow: 2px 2px 0 rgba(120, 60, 160, .8); }
+@keyframes rb-title { to { transform: scale(1.04) rotate(-.5deg); } }
+.replay-banner p {
+  margin: 12px auto 16px;
+  font-size: clamp(7px, 1.3vw, 10px);
+  line-height: 2;
+  max-width: 52ch;
+}
+.rb-spark {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  /* CSS-искра вместо символа */
+  width: 22px;
+  height: 22px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, #fff3d6, rgba(255, 179, 71, .8) 55%, transparent);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  filter: drop-shadow(0 0 12px rgba(255, 190, 90, .9));
+  animation: rb-spark-spin 3s linear infinite;
+}
+@keyframes rb-spark-spin {
+  0%, 100% { transform: translateX(-50%) rotate(0) scale(1); }
+  50%      { transform: translateX(-50%) rotate(180deg) scale(1.3); }
+}
+.replay-banner-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.rb-btn { font-size: clamp(7px, 1.2vw, 10px); padding: 10px 12px; }
+.rb-btn-ghost { background: linear-gradient(180deg, #ffd98a, #e8a33d); color: #6d3f10; box-shadow: 0 5px 0 #9c6516; }
+.rb-btn-ghost:hover { box-shadow: 0 8px 0 #9c6516; }
+.rb-btn-ghost:active { box-shadow: 0 2px 0 #9c6516; }
+@keyframes banner-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(60px) scale(.85); }
+  70%  { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1.02); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* финальный акцент повтора: карточка делает победный «прыжок» */
+.scene.replay-done .countdown-card { animation: replay-jump .9s cubic-bezier(.2, 1.6, .4, 1) 2; }
+@keyframes replay-jump {
+  0%, 100% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-16px) scale(1.03); }
+  60% { transform: translateY(2px) scale(.98, 1.02); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .replay-btn, .rb-spark, .replay-banner b,
+  .scene.replay-on::before, .scene.replay-done .countdown-card,
+  .flag, .firefly, .sky-lantern::before, .progress-bar::after,
+  .star.big, .scene .badge { animation: none !important; }
+}
+
+
+/* ============================================================
+   АДАПТИВ ДЛЯ МОБИЛЬНЫХ (единый слой, перекрывает старые брейкпоинты)
+   ============================================================ */
+
+/* планшеты */
+@media (max-width: 820px) {
+  .countdown-card { padding: 26px 18px; }
+  .timer { gap: 6px; }
+  .time-box { min-width: 66px; }
+}
+
+/* смартфоны */
+@media (max-width: 560px) {
+  html { font-size: 15px; }
+  .scene { min-height: 100svh; }
+  .countdown-card {
+    width: min(94vw, 420px);
+    margin-top: max(-6vh, -40px);
+    padding: 20px 12px;
+  }
+  h1 { font-size: clamp(14px, 4.6vw, 22px); line-height: 1.6; }
+  .subtitle { font-size: clamp(7px, 2.4vw, 10px); }
+  .badge { font-size: clamp(7px, 2.2vw, 10px); padding: 8px 10px; }
+  /* таймер — в две строки по две ячейки, чтобы цифры оставались крупными */
+  .timer { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .timer .colon { display: none; }
+  .time-box { min-width: calc(50% - 8px); flex: 0 1 calc(50% - 8px); }
+  .time-box span { font-size: clamp(20px, 7.2vw, 30px); }
+  .time-box small { font-size: clamp(6px, 1.9vw, 8px); letter-spacing: .5px; }
+  footer { font-size: clamp(6px, 1.8vw, 8px); padding: 0 12px; }
+  .replay-banner { width: min(94vw, 460px); padding: 18px 14px; }
+  .replay-banner p { font-size: clamp(7px, 2.3vw, 10px); line-height: 1.9; }
+  .rb-btn { font-size: clamp(8px, 2.3vw, 11px); padding: 12px 14px; }
+}
+
+/* очень узкие экраны */
+@media (max-width: 360px) {
+  .time-box { min-width: calc(50% - 6px); flex-basis: calc(50% - 6px); }
+  .time-box span { font-size: 20px; }
+  .countdown-card { padding: 16px 8px; }
+}
+
+/* альбомная ориентация телефона — уменьшаем вертикальные отступы */
+@media (max-height: 480px) and (orientation: landscape) {
+  .countdown-card { margin-top: 0; padding: 14px 16px; }
+  .timer { gap: 6px; }
+  .time-box { min-width: 84px; }
+  .deco .garland-top { width: 220px; }
+  .party-card { padding: 18px 14px; }
+}

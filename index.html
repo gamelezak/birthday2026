@@ -19,20 +19,7 @@
     </div>
 
     <div class="sky-overlay" aria-hidden="true"></div>
-    <!-- Луна и солнце уже нарисованы на фоновых картинках (birthday-bg*.png):
-         здесь только «живые» ореолы, привязанные к их местоположению. -->
-    <div class="sun-glow" id="sunGlow" aria-hidden="true"><i class="sg-core"></i><i class="sg-flare f1"></i><i class="sg-flare f2"></i><i class="sg-flare f3"></i></div>
-    <div class="moon-glow" id="moonGlow" aria-hidden="true"><i class="mg-ring"></i><i class="mg-ray r1"></i><i class="mg-ray r2"></i><i class="mg-ray r3"></i></div>
-    <!-- Ореолы небесных светил поверх фоновой картинки:
-         свой «живой» диск луны + пульсирующий ореол солнца -->
-    <div class="sky-orbits" aria-hidden="true">
-      <div class="sun-halo"></div>
-      <div class="moon-stage" id="moonStage">
-        <div class="moon-glow mg-halo"></div>
-        <div class="moon-body"><span class="crater c1"></span><span class="crater c2"></span><span class="crater c3"></span></div>
-      </div>
-    </div>
-    <canvas id="moonDust" class="layer" aria-hidden="true"></canvas>
+    <!-- Солнце и луна убраны по просьбе именинника: никаких светил и ореолов. -->
     <div id="lanterns" class="layer" aria-hidden="true"></div>
     <div class="clouds" aria-hidden="true">
       <i class="cloud cloud-1"></i>
@@ -52,7 +39,7 @@
     <div class="bird-layer" id="birds" aria-hidden="true"></div>
 
     <section class="countdown-card">
-      <div class="badge">✦ ПРАЗДНИК УЖЕ БЛИЗКО ✦</div>
+      <div class="badge">ПРАЗДНИК УЖЕ БЛИЗКО</div>
       <h1>ДО ДНЯ РОЖДЕНИЯ</h1>
       <p></p>
       
@@ -76,7 +63,10 @@
         </div>
       </div>
       <p class="subtitle" id="subtitle">Осталось совсем чуть-чуть...</p>
-      <p class="early-access"><a href="congrats.html?arrived=1" id="earlyLink">🎁 заглянуть в праздник пораньше →</a></p>
+      <p class="early-access"><a href="congrats.html?arrived=1" id="earlyLink">заглянуть в праздник пораньше →</a></p>
+      <!-- кнопка появляется только в течение 7 дней после праздника (script.js) -->
+      <button id="replayBtn" class="replay-btn" style="display:none"
+        title="Ещё раз прожить последние 60 секунд перед праздником">⏱ ПОСМОТРЕТЬ ПОСЛЕДНЮЮ МИНУТКУ ЗАНОВО</button>
     </section>
 
     <div class="flash-overlay" aria-hidden="true"></div>

@@ -65,9 +65,12 @@
 
 .spark {
   position: absolute;
-  color: #fff3c4;
-  font-size: clamp(14px, 2.4vw, 26px);
-  text-shadow: 0 0 12px rgba(255, 210, 120, .9);
+  /* CSS-искра вместо символа — без эмодзи и сторонних шрифтов */
+  width: clamp(14px, 2.4vw, 26px);
+  height: clamp(14px, 2.4vw, 26px);
+  background: radial-gradient(closest-side, #fffbe8, rgba(255, 210, 120, .75) 55%, transparent);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  filter: drop-shadow(0 0 10px rgba(255, 210, 120, .9));
   opacity: 0;
   animation: spark-twinkle 3.4s ease-in-out infinite;
 }
@@ -571,6 +574,12 @@ body.final-mode .progress-bar {
   z-index: 50;
   display: grid;
   place-items: center;
+  /* резервуар прокрутки: на маленьких экранах содержимое не «уходит» за кромку */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: max(64px, calc(env(safe-area-inset-top) + 56px)) 12px
+           calc(env(safe-area-inset-bottom) + 20px);
   background: rgba(10, 4, 30, .82);
   backdrop-filter: blur(6px);
   animation: fade-in .4s ease both;
@@ -757,9 +766,9 @@ body.final-mode .progress-bar {
   display: grid;
   place-items: center;
   text-align: center;
-  padding: 20px;
-  font-size: clamp(12px, 2.6vw, 22px);
-  line-height: 2;
+  padding: clamp(12px, 4vw, 28px);
+  font-size: clamp(13px, min(3.6vw, 5.2vh), 22px);
+  line-height: 1.7;
   color: #ffe9f6;
   text-shadow: 3px 3px 0 #b3387c;
   opacity: 0;
@@ -770,7 +779,13 @@ body.final-mode .progress-bar {
 .surprise-msg.show { opacity: 1; transform: scale(1); pointer-events: auto; }
 /* «супер-сюрприз» — широкие надписи не должны упираться в узкий блок коробочки:
    растягиваем слой текста на всю ширину оверлея (inset:0 уже задан выше) */
-.surprise-msg > div { max-width: min(680px, 92vw); margin: 0 auto; }
+.surprise-msg > div {
+  max-width: min(680px, 94vw);
+  margin: 0 auto;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+}
 /* широкая «табелка» под реплики матрёшки — текст не выглядит сдавленным */
 .tease-plate {
   background: rgba(16, 6, 40, .72);
@@ -779,14 +794,14 @@ body.final-mode .progress-bar {
   box-shadow: 0 10px 30px rgba(0, 0, 0, .45), inset 0 0 24px rgba(168, 111, 232, .18);
   padding: clamp(14px, 3vw, 26px) clamp(16px, 4vw, 36px);
 }
-.grand-title { letter-spacing: clamp(2px, .8vw, 6px); white-space: nowrap; }
+.grand-title { letter-spacing: clamp(1px, .8vw, 6px); white-space: normal; }
 .grand-text {
-  max-width: 640px;
+  max-width: min(640px, 92vw);
   margin: 0 auto;
   line-height: 1.7;
   text-wrap: balance;
 }
-.surprise-bonus { max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+.surprise-bonus { max-width: min(600px, 92vw); margin-left: auto; margin-right: auto; line-height: 1.6; }
 .surprise-caption { white-space: normal; width: min(92vw, 560px); line-height: 1.5; }
 /* закрытие оверлея — мягкий «выдох» */
 .surprise-overlay.closing { animation: overlay-out .35s ease both; }
@@ -877,4 +892,52 @@ body.final-mode .progress-bar {
 .early-access a:hover {
   color: #ffd98a;
   text-shadow: 0 0 12px rgba(255, 180, 80, .8);
+}
+
+
+/* ============================================================
+   АДАПТИВ ДЛЯ МОБИЛЬНЫХ — страница поздравления
+   ============================================================ */
+
+/* планшеты */
+@media (max-width: 820px) {
+  .party-card { padding: clamp(18px, 4vw, 30px); }
+}
+
+/* смартфоны */
+@media (max-width: 560px) {
+  .party-scene { padding: 10px 0 calc(env(safe-area-inset-bottom) + 44px); }
+  .party-card {
+    width: min(94vw, 480px);
+    padding: 20px 12px;
+    border-width: 3px;
+  }
+  .card-sign { width: 88%; margin-bottom: 10px; }
+  .bounce-badge { font-size: clamp(8px, 2.6vw, 11px); padding: 8px 10px; margin-bottom: 12px; }
+  .party-title { gap: 2px; }
+  .party-title .ltr { font-size: clamp(15px, 5.4vw, 26px); text-shadow: 2px 2px 0 #b3387c; }
+  .party-sub { font-size: clamp(9px, 2.8vw, 12px); line-height: 1.8; min-height: 3em; }
+  /* кнопки — крупная зона нажатия (не менее 44px), на узких экранах в столбик */
+  .party-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+  .btn { font-size: clamp(9px, 2.7vw, 12px); padding: 15px 12px; min-height: 44px; }
+  .blow-hint { font-size: clamp(8px, 2.4vw, 11px); line-height: 1.8; padding: 0 6px; }
+  .wish-scroll p { font-size: clamp(8px, 2.4vw, 11px); line-height: 1.9; }
+  .deco .garland-top { width: min(320px, 90vw); }
+  .deco .bunting { width: 84px; }
+  footer { bottom: 10px; font-size: 7px; width: 92vw; text-align: center; line-height: 1.7; }
+  /* сюрприз-оверлей на телефоне: компактнее, скроллится целиком */
+  .surprise-box { transform: scale(.85); }
+  .tease-plate { padding: 14px 12px; }
+  .big-sprite { width: clamp(56px, 20vw, 80px); }
+  .grand-sprite { width: clamp(72px, 26vw, 100px); }
+  .grand-reveal { padding: 8px 6px; }
+  .surprise-next, .surprise-close { margin-top: 14px; }
+}
+
+/* альбомная ориентация телефона */
+@media (max-height: 480px) and (orientation: landscape) {
+  .party-card { padding: 14px 16px; }
+  .card-sign { width: min(320px, 60%); margin-bottom: 8px; }
+  .cake { transform: scale(.7); margin: 6px auto -18px; }
+  .surprise-overlay { place-items: start center; }
 }

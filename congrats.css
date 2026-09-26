@@ -796,6 +796,32 @@ body.final-mode .progress-bar {
 .surprise-next:active { box-shadow: 0 2px 0 #4d2388; }
 .surprise-msg .big-emoji { font-size: clamp(44px, 9vw, 84px); display: block; animation: emoji-spin 2.4s ease-in-out infinite; }
 @keyframes emoji-spin { 0%, 100% { transform: rotate(-12deg) scale(1); } 50% { transform: rotate(12deg) scale(1.2); } }
+/* пиксельные спрайты сюрприза вместо эмодзи */
+.big-sprite {
+  width: clamp(64px, 18vw, 96px);
+  height: auto;
+  display: block;
+  margin: 0 auto 10px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .35));
+  animation: sprite-wiggle 2.4s ease-in-out infinite;
+}
+@keyframes sprite-wiggle {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50% { transform: rotate(6deg) translateY(-6px); }
+}
+.grand-sprite {
+  width: clamp(84px, 22vw, 128px);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .45)) drop-shadow(0 0 22px rgba(255, 217, 138, .75));
+  animation: trophy-pop .8s cubic-bezier(.2, 1.8, .4, 1) both, sprite-wiggle 3s ease-in-out .8s infinite;
+}
+@keyframes trophy-pop { from { transform: scale(.2) rotate(-20deg); opacity: 0; } }
+.tease-plate p { margin: 6px 0 0; max-width: min(560px, 90vw); margin-left: auto; margin-right: auto; line-height: 1.7; text-wrap: balance; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 .surprise-close { margin-top: 22px; }
 
 .party-scene footer {
@@ -829,6 +855,7 @@ body.final-mode .progress-bar {
   .gift-stack, .gift-glow, .surprise-burst span, .grand-rays,
   .grand-title, .grand-text, .surprise-bonus,
   .flame, .flame.out, .flame.relit, .c-spark,
+  .big-sprite, .grand-sprite,
   .cake.joy-jiggle, .blow-hint.hint-flash, .blow-hint.hint-nudge,
   .party-scene.drop-charge, .party-scene.drop-shake { animation: none !important; }
   .ltr { opacity: 1; transform: none; }

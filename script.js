@@ -145,11 +145,145 @@ function triggerParty() {
 
   document.body.classList.add('countdown-leaving');
 
-  /* через мгновение вспышки — летим на страницу праздника
-     (собираем URL так, чтобы работало и в корне, и в подпадке GitHub Pages) */
-  window.setTimeout(() => {
+  /* креативный переход: конфетти-салют + swirling-портал, засасывающий экран */
+  launchTransitionConfetti();
+  openPortal(() => {
+    /* портал раскрылся — летим на страницу праздника
+       (собираем URL так, чтобы работало и в корне, и в подпадке GitHub Pages) */
     location.assign(getCongratsUrl() + '?arrived=1');
-  }, 1500);
+  });
+}
+
+/* ======= КРЕАТИВНЫЙ ПЕРЕХОД: КОНФЕТТИ-САЛЮТ ======= */
+function launchTransitionConfetti() {
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let layer = document.querySelector('.transition-confetti');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'transition-confetti';
+      layer.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(layer);
+    }
+    const colors = ['#ff6db3', '#ffd98a', '#7fc4ff', '#a86fe8', '#5ee8b7', '#ff8a5e', '#fff0f7'];
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 70; i++) {
+      const p = document.createElement('span');
+      p.style.setProperty('--x', `${(Math.random() * 100).toFixed(2)}vw`);
+      p.style.setProperty('--r', `${(Math.random() * 720 - 360).toFixed(0)}deg`);
+      p.style.setProperty('--dur', `${(1.4 + Math.random() * 1.6).toFixed(2)}s`);
+      p.style.setProperty('--dly', `${(Math.random() * 0.7).toFixed(2)}s`);
+      p.style.background = colors[i % colors.length];
+      if (i % 3 === 0) p.classList.add('round');
+      frag.appendChild(p);
+    }
+    layer.appendChild(frag);
+  } catch (e) { /* не критично для перехода */ }
+}
+
+/* ======= КРЕАТИВНЫЙ ПЕРЕХОД: MAGICAL SWIRLING PORTAL ======= */
+/* Портал раскрывается от центра экрана спиралью из частиц; когда дыра
+   закрывает весь экран, вызывается onOpen — в этот момент происходит
+   навигация, и пользователь «проваливается» прямо в страницу праздника. */
+function openPortal(onOpen) {
+  const canvas = $('portalCanvas');
+  const reducedMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!canvas || !canvas.getContext || reducedMotion) {
+    window.setTimeout(onOpen, 1500);
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+  canvas.classList.add('is-open');
+
+  const cx = W / 2;
+  const cy = H / 2;
+  const maxR = Math.hypot(cx, cy) * 1.15;
+  const DURATION = 1600;
+  const PALETTE = ['#ff6db3', '#ffd98a', '#7fc4ff', '#a86fe8', '#5ee8b7', '#ff8a5e'];
+
+  /* витки спирали, вращающиеся вместе с раскрытием портала */
+  const spiralPhase = Math.random() * Math.PI * 2;
+
+  function draw(now) {
+    const t = Math.min(1, (now - start) / DURATION);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const R = maxR * eased;
+    const rot = spiralPhase + now * 0.0028;
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* ядро портала — затягивающая темнота с цветным свечением по кромке */
+    const g = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R);
+    g.addColorStop(0, 'rgba(26, 8, 46, 1)');
+    g.addColorStop(0.72, 'rgba(38, 12, 66, 0.96)');
+    g.addColorStop(0.93, 'rgba(122, 62, 190, 0.9)');
+    g.addColorStop(1, 'rgba(255, 109, 179, 0.15)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fill();
+
+    /* спиральные рукава, закручивающиеся к краям экрана */
+    ctx.lineCap = 'round';
+    for (let s = 0; s < 3; s++) {
+      ctx.strokeStyle = PALETTE[(s * 2 + 1) % PALETTE.length];
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = Math.max(2, R * 0.03);
+      ctx.beginPath();
+      const base = rot + (s * Math.PI * 2) / 3;
+      for (let k = 0; k <= 40; k++) {
+        const f = k / 40;
+        const ang = base + f * 4.2;
+        const rad = R * (0.12 + 0.88 * f);
+        const x = cx + Math.cos(ang) * rad;
+        const y = cy + Math.sin(ang) * rad;
+        if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    /* искры, разлетающиеся по кромке портала */
+    const sparks = Math.round(26 + 60 * t);
+    for (let i = 0; i < sparks; i++) {
+      const seed = i * 12.9898;
+      const a = rot * (i % 2 ? 1 : -1) + Math.sin(seed) * Math.PI;
+      const rr = R * (0.85 + ((Math.sin(seed * 3.1 + now * 0.004) + 1) / 2) * 0.35);
+      const size = 1.5 + (Math.sin(seed * 7.7) + 1) * 1.6;
+      ctx.fillStyle = PALETTE[i % PALETTE.length];
+      ctx.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(seed + now * 0.006));
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    if (t < 1) {
+      requestAnimationFrame(draw);
+    } else if (!navigated) {
+      navigated = true;
+      onOpen();
+    }
+  }
+
+  let start = null;
+  let navigated = false;
+  /* страховка: даже если rAF затормозит, переход всё равно случится */
+  const safetyTimer = window.setTimeout(() => {
+    if (!navigated) { navigated = true; onOpen(); }
+  }, DURATION + 1200);
+  canvas.addEventListener('remove', () => window.clearTimeout(safetyTimer));
+
+  requestAnimationFrame((ts) => { start = ts; draw(ts); });
 }
 
 /* ======= Ссылка на страницу поздравления для GitHub Pages ======= */

@@ -533,3 +533,68 @@ h1 { color: var(--ui-title); }
 @media (prefers-reduced-motion: reduce) {
   .bird-layer { display: none; }
 }
+
+/* ============ КРЕАТИВНЫЙ ПЕРЕХОД ПОСЛЕ ТАЙМЕРА ============ */
+/* Портал, раскрывающийся спиралью и утягивающий на страницу праздника */
+.portal-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 95;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.portal-canvas.is-open {
+  opacity: 1;
+  animation: portal-pulse 1.6s ease-in forwards;
+}
+
+@keyframes portal-pulse {
+  0%   { filter: brightness(1); }
+  70%  { filter: brightness(1.25); }
+  100% { filter: brightness(1.5); }
+}
+
+/* Конфетти-салют поверх сцены во время перехода */
+.transition-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.transition-confetti span {
+  position: absolute;
+  top: -3vh;
+  left: var(--x, 50vw);
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: rotate(var(--r, 0deg));
+  animation: confetti-fall var(--dur, 2s) linear var(--dly, 0s) forwards;
+}
+
+.transition-confetti span.round {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
+  }
+  100% {
+    opacity: 0.85;
+    transform: translate3d(calc(var(--r, 0deg) / 12), 108vh, 0) rotate(calc(var(--r, 0deg) * 2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-canvas, .transition-confetti { display: none; }
+}

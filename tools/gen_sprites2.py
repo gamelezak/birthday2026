@@ -111,16 +111,29 @@ FONT5X7 = {
  ' ': ["00000"]*7,
 }
 words = ["С ДНЁМ", "РОЖДЕНИЯ!"]
-LET, GAP, WSP, rows = 5, 2, 4, 7
+LET, GAP, WSP, rows = 5, 3, 4, 7   # буква 5 клеток + интервал 3 — буквы не сливаются
+SCALE_X, SCALE_Y = 2, 2            # глиф 5x7 -> блок 10x14 реальных пикселей
+LINE_GAP = 6                       # зазор между строками (в логических пикселях)
+PADX, PADY, RIM = 6, 5, 2
+
 def word_w(s):
-    w=0
-    for ch in s: w += WSP if ch==' ' else LET+GAP
-    return w-GAP
+    """ширина строки текста в логических пикселях с учётом масштаба"""
+    w = 0
+    for ch in s:
+        w += WSP if ch == ' ' else LET * SCALE_X + GAP
+    return w - GAP
+
+text_h = rows * SCALE_Y
 line_w = max(word_w(words[0]), word_w(words[1]))
-PADX, PADY, RIM = 8, 7, 2
-BWl = line_w + PADX*2 + RIM*2
-BHl = rows*2 + 6 + PADY*2 + RIM*2
-sign = new_img(BWl, BHl)
+BWl = line_w + PADX * 2 + RIM * 2
+BHl = text_h * 2 + LINE_GAP + PADY * 2 + RIM * 2
+PX_SIGN = 12                       # выходной масштаб: крупные чёткие «пиксели»
+sign = Image.new("RGBA", (BWl * PX_SIGN, BHl * PX_SIGN), (0, 0, 0, 0))
+
+def pxs(img, x, y, color):
+    d = ImageDraw.Draw(img)
+    d.rectangle([x*PX_SIGN, y*PX_SIGN, (x+1)*PX_SIGN-1, (y+1)*PX_SIGN-1], fill=color)
+
 w1,w2,w3,edge,edge_hi = (74,36,92),(62,28,80),(50,22,68),(30,12,44),(96,52,116)
 for y in range(BHl):
     for x in range(BWl):
@@ -128,47 +141,79 @@ for y in range(BHl):
                   (x<RIM-1 and y>=BHl-RIM+1) or (x>=BWl-RIM+1 and y>=BHl-RIM+1))
         if corner: continue
         if x<RIM or y<RIM or x>=BWl-RIM or y>=BHl-RIM:
-            px(sign,x,y, edge)
+            pxs(sign,x,y, edge)
         else:
             g = (x//2 + int(2*math.sin(y/5.0))) % 4
-            px(sign,x,y,[w1,w2,w1,w3][g])
+            pxs(sign,x,y,[w1,w2,w1,w3][g])
+# внутренняя рамка-окантовка дощечки
 ix0, iy0, ix1, iy1 = RIM+3, RIM+3, BWl-RIM-4, BHl-RIM-4
 for x in range(ix0, ix1+1):
-    px(sign,x,iy0,w3); px(sign,x,iy1,w3)
+    pxs(sign,x,iy0,w3); pxs(sign,x,iy1,w3)
 for y in range(iy0, iy1+1):
-    px(sign,ix0,y,w3); px(sign,ix1,y,w3)
+    pxs(sign,ix0,y,w3); pxs(sign,ix1,y,w3)
+
+# мягкое неоновое свечение под буквами (рисуется до букв)
+glow_cols = [(255,150,90,42),(255,110,170,38),(120,180,255,40)]
+def add_glow(cx, cy, r, col):
+    ov = Image.new("RGBA", sign.size, (0,0,0,0))
+    dd = ImageDraw.Draw(ov)
+    dd.ellipse([cx-r, cy-r, cx+r, cy+r], fill=col)
+    sign.alpha_composite(ov)
+
 palette=[(255,92,120),(255,176,64),(255,240,96),(110,236,150),(96,190,255),(206,130,255)]
+
 def draw_text_row(s, y_base, ci_start):
-    x = (BWl - word_w(s))//2
+    """Каждая буква — чистый глиф 5x7, отрендеренный на своей сетке 10x14:
+    тёмный контур + яркое тело + светлый блик. Контур рисуется только вокруг
+    самой буквы, поэтому соседние буквы не «слипаются» — текст разборчив."""
+    x = (BWl - word_w(s)) // 2
     ci = ci_start
     for ch in s:
-        if ch==' ':
+        if ch == ' ':
             x += WSP; continue
         glyph = FONT5X7[ch]
-        col = palette[ci % len(palette)]; ci+=1
-        hi = tuple(min(255,c+110) for c in col); dk = tuple(int(c*0.55) for c in col)
+        col = palette[ci % len(palette)]; ci += 1
+        hi = tuple(min(255, c + 110) for c in col)
+        dk = tuple(int(c * 0.45) for c in col)
+        outline = (16, 6, 26)
+        # занятые клетки в локальной сетке буквы (LET*SCALE_X x rows*SCALE_Y)
+        occ = set()
         for gy in range(rows):
             for gx in range(LET):
-                if glyph[gy][gx]=='1':
-                    up = gy==0 or glyph[gy-1][gx]!='1'
-                    lf = gx==0 or glyph[gy][gx-1]!='1'
-                    dn = gy==rows-1 or glyph[gy+1][gx]!='1'
-                    c = hi if (up or lf) else (dk if dn else col)
-                    px(sign, x+gx, y_base+gy*2, c)
-                    px(sign, x+gx, y_base+gy*2+1, dk if dn else c)
-        x += LET+GAP
+                if glyph[gy][gx] == '1':
+                    for sy in range(SCALE_Y):
+                        for sx in range(SCALE_X):
+                            occ.add((gx*SCALE_X + sx, gy*SCALE_Y + sy))
+        # однокамерный контур только вокруг этой буквы
+        border = set()
+        for (ox, oy) in occ:
+            for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                p = (ox+dx, oy+dy)
+                if p not in occ: border.add(p)
+        for (bx, by) in border:
+            pxs(sign, x+bx, y_base+by, outline)
+        # тело букв
+        for (ox, oy) in occ:
+            top_edge = (ox, oy - 1) not in occ
+            left_edge = (ox - 1, oy) not in occ
+            bot_edge = (ox, oy + 1) not in occ
+            c = hi if (top_edge or left_edge) else (dk if bot_edge else col)
+            pxs(sign, x+ox, y_base+oy, c)
+        x += LET*SCALE_X + GAP
     return ci
-cy = RIM+PADY
+
+cy = RIM + PADY
 draw_text_row(words[0], cy, 0)
-draw_text_row(words[1], cy + rows*2 + 6, 3)
+draw_text_row(words[1], cy + text_h + LINE_GAP, 3)
+
 bulbs=[(255,236,140),(255,120,140),(120,214,255),(150,255,170)]
 bi=0
 def bulb(x,y,c):
-    px(sign,x,y,(90,90,110))
+    pxs(sign,x,y,(90,90,110))
     for dx in range(-1,2):
         for dy in range(0,3):
             if abs(dx)+dy<3:
-                px(sign,x+dx,y+1+dy, tuple(int(v*0.6) for v in c) if (abs(dx)==1 and dy==2) else c)
+                pxs(sign,x+dx,y+1+dy, tuple(int(v*0.6) for v in c) if (abs(dx)==1 and dy==2) else c)
 perim  = [(x,RIM-2) for x in range(RIM+2,BWl-RIM-2,6)]
 perim += [(x,BHl-RIM+1) for x in range(RIM+2,BWl-RIM-2,6)]
 perim += [(RIM-2,y) for y in range(RIM+4,BHl-RIM-2,6)]

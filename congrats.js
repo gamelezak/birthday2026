@@ -131,6 +131,8 @@ function spawnConfetti(n) {
   }
 }
 spawnConfetti(90);
+/* волна салюта, когда буквы заголовка «приземляются» */
+setTimeout(() => burstConfetti(50), 1600);
 
 function confFrame(t) {
   cctx.clearRect(0, 0, confCanvas.width, confCanvas.height);

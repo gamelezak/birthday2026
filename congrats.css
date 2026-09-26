@@ -199,7 +199,7 @@ body.final-mode .progress-bar {
 /* пиксельная вывеска над заголовком */
 .card-sign {
   display: block;
-  width: min(430px, 82%);
+  width: min(500px, 92%);
   height: auto;
   margin: 0 auto 16px;
   image-rendering: pixelated;

@@ -157,7 +157,7 @@ function updateProximity(diffMs) {
   if (lvl >= 1) spawnDustMotes();
   if (lvl >= 2) startBalloons();
   if (lvl >= 3) buildBunting();
-  if (lvl >= 4) spawnFireflies();
+  if (lvl >= 4) { spawnFireflies(); startConfettiRain(); }
 }
 
 /* --- L1: парящая золотая пыль (появляется за месяц до) --- */
@@ -238,6 +238,35 @@ function spawnFireflies() {
     frag.appendChild(f);
   }
   box.appendChild(frag);
+}
+
+/* --- L4: конфетти-дождь (за час до праздника) + усиление с уровнем --- */
+let confettiTimer = null;
+function startConfettiRain() {
+  const box = $('confettiRain');
+  if (!box || REDUCED_MOTION || confettiTimer) return;
+  const colors = ['#ff6db3', '#ffd98a', '#7fc4ff', '#a86fe8', '#5ee8b7', '#ff8f6d'];
+  const drop = () => {
+    if (box.children.length > 40) return;
+    const c = document.createElement('i');
+    c.className = 'confetti-bit';
+    c.style.setProperty('--cx', `${Math.random() * 100}%`);
+    c.style.setProperty('--cc', colors[Math.floor(Math.random() * colors.length)]);
+    c.style.setProperty('--cw', `${(5 + Math.random() * 5).toFixed(1)}px`);
+    c.style.setProperty('--ch', `${(8 + Math.random() * 7).toFixed(1)}px`);
+    c.style.setProperty('--cdur', `${(5.5 + Math.random() * 5).toFixed(1)}s`);
+    c.style.setProperty('--csway', `${(-40 + Math.random() * 80).toFixed(0)}px`);
+    box.appendChild(c);
+    c.addEventListener('animationend', () => c.remove());
+  };
+  for (let i = 0; i < 8; i++) setTimeout(drop, i * 260);
+  /* чем ближе праздник — тем гуще дождь */
+  const tick = () => {
+    const n = proximityLevel >= 5 ? 3 : 1;
+    for (let i = 0; i < n; i++) drop();
+    confettiTimer = setTimeout(tick, proximityLevel >= 5 ? 500 : 1100);
+  };
+  confettiTimer = setTimeout(tick, 1100);
 }
 
 /* ========= ФИНАЛЬНЫЙ ОТСЧЁТ (последние 10 секунд) ========= */

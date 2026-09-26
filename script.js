@@ -31,6 +31,22 @@ let fakeNowOffset = 0;
 let finalCountdownActive = false;
 let partyTriggered = false;
 
+/* ======= УРОВНИ ПРИБЛИЖЕНИЯ ПРАЗДНИКА =======
+   Чем меньше времени осталось, тем больше анимаций «просыпается»:
+   L1 (≤30д) — золотая пыль; L2 (≤7д) — воздушные шары;
+   L3 (≤сутки) — гирлянда флажков + праздничная рамка экрана;
+   L4 (≤часа) — светлячки ночью + северное сияние;
+   L5 (≤минуты) — бегущие огоньки на прогресс-баре, пульс карточки;
+   L6 (≤10сек) — финальный отсчёт. */
+const PROXIMITY_LEVELS = [
+  { id: 1, until: 30 * 86400e3 },
+  { id: 2, until: 7 * 86400e3 },
+  { id: 3, until: 86400e3 },
+  { id: 4, until: 3600e3 },
+  { id: 5, until: 60e3 }
+];
+let proximityLevel = 0;
+
 function getTargetDate() {
   let d = new Date(targetDate);
   if (Number.isNaN(d.getTime())) {
@@ -74,10 +90,10 @@ function updateCountdown() {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  $('days').textContent = pad(days, 3);
-  $('hours').textContent = pad(hours);
-  $('minutes').textContent = pad(minutes);
-  $('seconds').textContent = pad(seconds);
+  setDigit('days', pad(days, 3));
+  setDigit('hours', pad(hours));
+  setDigit('minutes', pad(minutes));
+  setDigit('seconds', pad(seconds));
 
   const start = new Date(target);
   start.setFullYear(start.getFullYear() - 1);
@@ -96,11 +112,132 @@ function updateCountdown() {
     subtitle.textContent = `Праздник наступит совсем скоро`;
   }
 
+  /* включаем анимации по мере приближения праздника */
+  updateProximity(diff);
+
   /* таймер дошёл до нуля — запускаем party-переход.
      ВАЖНО: сравнение в целых секундах (totalSeconds), а не в миллисекундах,
      иначе из-за округления книзу diff остаётся ~999мс ещё целый такт,
      отсчёт «залипает» на 00:00 и переход никогда не срабатывает. */
   if (totalSeconds <= 0) triggerParty();
+}
+
+/* ======= ПЕРЕБОРКА ЦИФР: цифра «выкатывается» снизу вверх ======= */
+const REDUCED_MOTION = window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function setDigit(id, value) {
+  const el = $(id);
+  if (!el) return;
+  const cell = el.querySelector('em') || el;
+  if (cell.textContent === value) return;
+  cell.textContent = value;
+  if (REDUCED_MOTION) return;
+  /* перезапуск pop-анимации через reflow */
+  cell.classList.remove('pop');
+  void cell.offsetWidth;
+  cell.classList.add('pop');
+}
+
+/* ======= АНИМАЦИИ ПО МЕРЕ ПРИБЛИЖЕНИЯ ПРАЗДНИКА ======= */
+function levelForDiff(diffMs) {
+  let lvl = 0;
+  for (const l of PROXIMITY_LEVELS) {
+    if (diffMs <= l.until) lvl = l.id;
+  }
+  return lvl;
+}
+
+function updateProximity(diffMs) {
+  const lvl = levelForDiff(diffMs);
+  if (lvl === proximityLevel) return;
+  proximityLevel = lvl;
+  scene.dataset.proximity = String(lvl);
+  scene.classList.toggle('party-border-on', lvl >= 3);
+  if (lvl >= 1) spawnDustMotes();
+  if (lvl >= 2) startBalloons();
+  if (lvl >= 3) buildBunting();
+  if (lvl >= 4) spawnFireflies();
+}
+
+/* --- L1: парящая золотая пыль (появляется за месяц до) --- */
+let dustSpawnTimer = null;
+function spawnDustMotes() {
+  const box = $('dustMotes');
+  if (!box || REDUCED_MOTION) return;
+  const add = () => {
+    if (box.children.length > 26) return;
+    const m = document.createElement('i');
+    m.style.setProperty('--x', `${Math.random() * 100}%`);
+    m.style.setProperty('--s', `${(2 + Math.random() * 3).toFixed(1)}px`);
+    m.style.setProperty('--dur', `${(7 + Math.random() * 8).toFixed(1)}s`);
+    m.style.setProperty('--drift', `${(-40 + Math.random() * 80).toFixed(0)}px`);
+    m.style.animationDelay = `${(-Math.random() * 4).toFixed(1)}s`;
+    box.appendChild(m);
+    m.addEventListener('animationend', () => m.remove());
+  };
+  for (let i = 0; i < 10; i++) add();
+  if (!dustSpawnTimer) dustSpawnTimer = setInterval(add, 1400);
+}
+
+/* --- L2: воздушные шары поднимаются снизу (за неделю до) --- */
+let balloonTimer = null;
+function startBalloons() {
+  const rig = $('balloonRig');
+  if (!rig || REDUCED_MOTION || balloonTimer) return;
+  const colors = ['#ff6db3', '#ffd98a', '#7fc4ff', '#a86fe8', '#5ee8b7'];
+  const launch = () => {
+    if (rig.children.length > 6) return;
+    const b = document.createElement('span');
+    b.className = 'float-balloon';
+    b.style.setProperty('--bx', `${(4 + Math.random() * 88).toFixed(1)}vw`);
+    b.style.setProperty('--bs', `${(0.55 + Math.random() * 0.5).toFixed(2)}`);
+    b.style.setProperty('--bdur', `${(13 + Math.random() * 9).toFixed(1)}s`);
+    b.style.setProperty('--bsway', `${(18 + Math.random() * 30).toFixed(0)}px`);
+    b.style.setProperty('--bc', colors[Math.floor(Math.random() * colors.length)]);
+    rig.appendChild(b);
+    b.addEventListener('animationend', () => b.remove());
+  };
+  for (let i = 0; i < 3; i++) setTimeout(launch, i * 900);
+  balloonTimer = setInterval(launch, 4200);
+}
+
+/* --- L3: гирлянда флажков развешивается по верху экрана (за сутки до) --- */
+let buntingBuilt = false;
+function buildBunting() {
+  const row = $('buntingRow');
+  if (!row || buntingBuilt) return;
+  buntingBuilt = true;
+  const flags = Math.max(8, Math.round(window.innerWidth / 90));
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < flags; i++) {
+    const f = document.createElement('i');
+    f.className = 'flag';
+    f.style.animationDelay = `${(i * 0.09).toFixed(2)}s`;
+    f.style.setProperty('--frot', `${(-6 + Math.random() * 12).toFixed(0)}deg`);
+    frag.appendChild(f);
+  }
+  row.appendChild(frag);
+}
+
+/* --- L4: светлячки (тёплые огоньки, порхающие по экрану) --- */
+let firefliesBuilt = false;
+function spawnFireflies() {
+  const box = $('fireflies');
+  if (!box || firefliesBuilt || REDUCED_MOTION) return;
+  firefliesBuilt = true;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < 16; i++) {
+    const f = document.createElement('i');
+    f.className = 'firefly';
+    f.style.setProperty('--fx', `${Math.random() * 96}%`);
+    f.style.setProperty('--fy', `${15 + Math.random() * 78}%`);
+    f.style.setProperty('--fdur', `${(5 + Math.random() * 6).toFixed(1)}s`);
+    f.style.setProperty('--fdel', `${(-Math.random() * 8).toFixed(1)}s`);
+    f.style.setProperty('--famp', `${(12 + Math.random() * 34).toFixed(0)}px`);
+    frag.appendChild(f);
+  }
+  box.appendChild(frag);
 }
 
 /* ========= ФИНАЛЬНЫЙ ОТСЧЁТ (последние 10 секунд) ========= */
@@ -122,7 +259,7 @@ function triggerParty() {
   if (timer) {
     ['days', 'hours', 'minutes', 'seconds'].forEach((id) => {
       const el = $(id);
-      if (el) el.textContent = id === 'days' ? '000' : '00';
+      if (el) setDigit(id, id === 'days' ? '000' : '00');
     });
   }
   if (progressBar) progressBar.style.width = '100%';
@@ -399,7 +536,8 @@ function spawnBirdFlock() {
 
   const count = Math.random() < 0.72 ? 1 : 2;
   const top = randomBetween(7, 42);
-  const directionFlip = Math.random() < 0.28;
+  /* часть стаи летит справа налево (класс flip включён в генераторе) */
+  const directionFlip = Math.random() < 0.45;
 
   for (let i = 0; i < count; i++) {
     const bird = document.createElement('span');
@@ -408,6 +546,9 @@ function spawnBirdFlock() {
     bird.style.setProperty('--bird-scale', `${randomBetween(.58, .82).toFixed(2)}`);
     bird.style.setProperty('--bird-duration', `${randomBetween(15, 24).toFixed(1)}s`);
     bird.style.setProperty('--bird-delay', `${(i * .35).toFixed(2)}s`);
+    /* чем ближе праздник — тем оживлённее полёт */
+    const liveliness = 1 + proximityLevel * 0.18;
+    bird.style.setProperty('--bird-flap', `${Math.max(.55, 1.45 / liveliness).toFixed(2)}s`);
     bird.style.setProperty('--bird-drift-a', `${randomBetween(-28, 24).toFixed(0)}px`);
     bird.style.setProperty('--bird-drift-b', `${randomBetween(-18, 28).toFixed(0)}px`);
     bird.style.setProperty('--bird-drift-c', `${randomBetween(-25, 30).toFixed(0)}px`);
@@ -440,3 +581,78 @@ function syncBirds() {
 
 syncBirds();
 setInterval(syncBirds, THEME_CHECK_INTERVAL);
+
+/* ======= ПАДАЮЩИЕ ЗВЁЗДЫ (canvas) — тем чаще, чем ближе праздник ======= */
+(function shootingStars() {
+  const cv = $('shootingStars');
+  if (!cv || !cv.getContext || REDUCED_MOTION) return;
+  const ctx = cv.getContext('2d');
+  let W = 0, H = 0;
+
+  function fit() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cv.width = W * dpr;
+    cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  const stars = [];
+  /* базовая частота — раз в ~9 секунд; на каждом уровне приближения
+     умножается пополам: у самого финиша звёзды сыплются каждые ~0.6с */
+  function spawnChance() {
+    return 0.0035 * Math.pow(1.7, proximityLevel);
+  }
+
+  function frame(t) {
+    ctx.clearRect(0, 0, W, H);
+    /* ночью ярче, днём — полупрозрачные «ангелы-вестники» */
+    const night = scene.classList.contains('theme-night');
+    const boost = 1 + proximityLevel * 0.28;
+
+    if (Math.random() < spawnChance() && stars.length < 4) {
+      const fromLeft = Math.random() < 0.5;
+      stars.push({
+        x: fromLeft ? Math.random() * W * 0.4 : W * (0.5 + Math.random() * 0.45),
+        y: H * (0.03 + Math.random() * 0.3),
+        vx: (fromLeft ? 1 : -1) * (5.5 + Math.random() * 4),
+        vy: 2.6 + Math.random() * 2.2,
+        life: 0,
+        max: 40 + Math.round(Math.random() * 22),
+        hue: [ '#fff3c4', '#ffd98a', '#ffb8e0', '#bfe3ff' ][Math.floor(Math.random() * 4)]
+      });
+    }
+
+    for (let i = stars.length - 1; i >= 0; i--) {
+      const s = stars[i];
+      s.life++;
+      s.x += s.vx;
+      s.y += s.vy;
+      const a = Math.max(0, 1 - s.life / s.max);
+      const tail = 9;
+      const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * tail, s.y - s.vy * tail);
+      grad.addColorStop(0, s.hue);
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.globalAlpha = a * (night ? 0.95 : 0.45) * Math.min(1.6, boost);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(s.x - s.vx * tail, s.y - s.vy * tail);
+      ctx.stroke();
+      /* ядро звезды */
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+      if (s.life >= s.max) stars.splice(i, 1);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();

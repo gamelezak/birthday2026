@@ -84,10 +84,10 @@ requestAnimationFrame(skyFrame);
 /* ---------- печатающееся пожелание ---------- */
 const WISHES = [
   'Сегодня ТОТ САМЫЙ день! Пусть сбывается всё, во что ты веришь, — и даже то, во что уже не верилось…',
-  'Ты ждал(а) этот момент целый год — и вот он: полный привод чудес, гарантия не распространяется, зато действует всегда!',
+  'Ты ждала этот момент целый год — и вот он: полный привод чудес, гарантия не распространяется, зато действует всегда!',
   'Пусть этот год будет как лучший плейлист: любимые люди на репите, тревоги в удалённых, а счастье — без ограничений!',
   'Желаю тебе года, где утро начинается с любимого кофе, вечера — с тёплым пледом и смешными сериалами, а рядом всегда будут те, кто громче всех смеётся над твоими шутками…',
-  'С днём рождения! Желаю наглости бронировать билеты, не глядя на цены; говорить «да» приглашениям и «нет» тому, что высасывает энергию…',
+  'С 19-летием! Желаю наглости бронировать билеты, не глядя на цены; говорить «да» приглашениям и «нет» тому, что высасывает энергию…',
   'Пусть в этом году появится хобби, от которого невозможно оторваться, проект, которым будешь хвастаться, и день, который вспоминать будете все друзья…',
   'Здоровья — чтобы планы совпадали с силами, денег — чтобы мечты стоили меньше, чем возможности, и счастья — такого, которое не нужно объяснять!'
 ];
@@ -183,98 +183,7 @@ requestAnimationFrame(confFrame);
 function burstConfetti(count = 60) { spawnConfetti(count); }
 setInterval(() => burstConfetti(12), 4200);
 
-/* ---------- воздушные шары (canvas, с бликом, ниткой и «хвостиком») ---------- */
-const ballCanvas = document.createElement('canvas');
-ballCanvas.className = 'balloon-canvas';
-ballCanvas.setAttribute('aria-hidden', 'true');
-sceneEl.appendChild(ballCanvas);
-const bctx = ballCanvas.getContext('2d');
-let balloonsArr = [];
-
-function resizeBalls() {
-  ballCanvas.width = window.innerWidth;
-  ballCanvas.height = window.innerHeight;
-}
-resizeBalls();
-
-function spawnBalloon() {
-  if (balloonsArr.length > 9) return;
-  const r = rand(26, 46);
-  balloonsArr.push({
-    x: rand(30, ballCanvas.width - 30),
-    y: ballCanvas.height + r * 2 + 80,
-    r,
-    vy: rand(.5, .95),
-    ph: rand(0, Math.PI * 2),
-    sway: rand(14, 40),
-    color: pick(PARTY_COLORS),
-    alpha: 0
-  });
-}
-for (let i = 0; i < 5; i++) setTimeout(spawnBalloon, i * 700);
-setInterval(spawnBalloon, 2600);
-
-function shade(hex, amt) {
-  const n = parseInt(hex.slice(1), 16);
-  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => Math.max(0, Math.min(255, v + amt)));
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
-
-function balloonFrame(t) {
-  bctx.clearRect(0, 0, ballCanvas.width, ballCanvas.height);
-  const tsec = t / 1000;
-  for (let i = balloonsArr.length - 1; i >= 0; i--) {
-    const b = balloonsArr[i];
-    b.y -= b.vy;
-    b.alpha = Math.min(1, b.alpha + .02);
-    if (b.y < -b.r * 3.4) { balloonsArr.splice(i, 1); continue; }
-    const x = b.x + Math.sin(tsec * .8 + b.ph) * b.sway;
-    const { r } = b;
-    bctx.save();
-    bctx.globalAlpha = b.alpha;
-
-    // нитка — волнистая линия
-    bctx.strokeStyle = 'rgba(255, 240, 247, .55)';
-    bctx.lineWidth = 1.5;
-    bctx.beginPath();
-    bctx.moveTo(x, b.y + r * 1.12);
-    for (let s = 1; s <= 6; s++) {
-      const yy = b.y + r * 1.12 + s * 12;
-      const xx = x + Math.sin(tsec * 2 + b.ph + s * .9) * 4;
-      bctx.lineTo(xx, yy);
-    }
-    bctx.stroke();
-
-    // тело шара
-    const grad = bctx.createRadialGradient(x - r * .35, b.y - r * .45, r * .15, x, b.y, r * 1.15);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(.28, b.color);
-    grad.addColorStop(1, shade(b.color, -70));
-    bctx.fillStyle = grad;
-    bctx.beginPath();
-    bctx.ellipse(x, b.y, r * .85, r, 0, 0, Math.PI * 2);
-    bctx.fill();
-
-    // хвостик-узелок
-    bctx.fillStyle = shade(b.color, -40);
-    bctx.beginPath();
-    bctx.moveTo(x - 5, b.y + r * .95);
-    bctx.lineTo(x + 5, b.y + r * .95);
-    bctx.lineTo(x, b.y + r * 1.18);
-    bctx.closePath();
-    bctx.fill();
-
-    // блик
-    bctx.fillStyle = 'rgba(255, 255, 255, .65)';
-    bctx.beginPath();
-    bctx.ellipse(x - r * .32, b.y - r * .38, r * .16, r * .26, -.5, 0, Math.PI * 2);
-    bctx.fill();
-
-    bctx.restore();
-  }
-  requestAnimationFrame(balloonFrame);
-}
-requestAnimationFrame(balloonFrame);
+/* ---------- шарики с поздравления убраны: ночная тема — без шариков ---------- */
 
 /* ---------- фейерверки на canvas ---------- */
 const canvas = $('fireworks');
@@ -289,7 +198,7 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-window.addEventListener('resize', () => { resizeSky(); resizeCanvas(); resizeConf(); resizeBalls(); });
+window.addEventListener('resize', () => { resizeSky(); resizeCanvas(); resizeConf(); });
 
 function explode(x, y, color) {
   const n = 46;
@@ -555,11 +464,11 @@ armIdleNudge();
 /* ---------- супер-сюрприз: многослойная «матрёшка» подарков ---------- */
 /* финальные послания гранд-финала (выбирается случайное) */
 const SURPRISE_MESSAGES = [
-  ['assets/gift-trophy.png', 'Кубок чемпиона праздника — твой! Ты дошёл(ла) до самого сердца сюрприза. Знай: где-то прямо сейчас кто-то очень рад, что ты есть. С Днём Рождения!'],
-  ['assets/gift-trophy.png', 'Это не просто подарок — это орден «За пройденные ожидания и выдержанные отсчёты». Носи с гордостью, ты заслужил(а)!'],
+  ['assets/gift-trophy.png', 'Кубок чемпиона праздника — твой! Ты дошла до самого сердца сюрприза. Знай: где-то прямо сейчас кто-то очень рад, что ты есть. С 19-летием!'],
+  ['assets/gift-trophy.png', 'Это не просто подарок — это орден «За пройденные ожидания и выдержанные отсчёты». Носи с гордостью, ты заслужила!'],
   ['assets/gift-trophy.png', 'Внутри была пустая коробочка? Нет! Внутри было вот это: ты — лучший человек этого года. И точка.'],
-  ['assets/gift-trophy.png', 'Говорят, главный подарок — это то, что ждали дольше всего. Ты ждал(а) целый год. Так что держи кубо... то есть признание!'],
-  ['assets/gift-trophy.png', 'Финальный лут легендарной редкости: +100 к счастью, +50 к удаче, пассивка «желания сбываются». С Днём Рождения!']
+  ['assets/gift-trophy.png', 'Говорят, главный подарок — это то, что ждали дольше всего. Ты ждала целый год. Так что держи кубо... то есть признание!'],
+  ['assets/gift-trophy.png', 'Финальный лут легендарной редкости: +100 к счастью, +50 к удаче, пассивка «желания сбываются». С 19-летием!']
 ];
 
 /* промежуточные слои матрёшки — спрайты вместо эмодзи + реплики-тикеры */
@@ -567,7 +476,7 @@ const NESTED_GIFTS = [
   { sprite: 'assets/gift-bear.png', alt: 'Медвежонок',
     tease: 'Ой! Это был только первый слой… Медвежонок говорит: копать дальше!' },
   { sprite: 'assets/gift-candy.png', alt: 'Конфетка',
-    tease: 'Почти! Конфетка — это взятка, чтобы ты не закрыл(а) страницу ;) Дёрни крышку ещё раз!' },
+    tease: 'Почти! Конфетка — это взятка, чтобы ты не закрыла страницу ;) Дёрни крышку ещё раз!' },
   { sprite: 'assets/gift-sparkle.png', alt: 'Светящаяся коробочка',
     tease: 'Светится! Уже чувствуешь жар из-под крышки? Ещё один слой — и всё!' }
 ];
@@ -628,6 +537,7 @@ $('surpriseBtn').addEventListener('click', () => {
      чтобы содержимое сюрприза не «уезжало» за экран */
   const prevBodyOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('surprise-open');
 
   const box = overlay.querySelector('.surprise-box');
   const msg = overlay.querySelector('.surprise-msg');
@@ -707,7 +617,7 @@ $('surpriseBtn').addEventListener('click', () => {
         grandSalvo();
         const [sprite, text] = pick(SURPRISE_MESSAGES);
         const bonus = revealCount > 1
-          ? `<div class="surprise-bonus">Ты открыл(а) сюрприз ${revealCount}-й раз — чемпион праздника</div>`
+          ? `<div class="surprise-bonus">Ты открыла сюрприз ${revealCount}-й раз — чемпион праздника</div>`
           : '';
         msg.innerHTML = `<div class="grand-reveal">
             <div class="grand-rays" aria-hidden="true"></div>
@@ -739,6 +649,7 @@ $('surpriseBtn').addEventListener('click', () => {
   function closeOverlay() {
     overlay.classList.add('closing');
     document.body.style.overflow = prevBodyOverflow || '';
+    document.body.classList.remove('surprise-open');
     setTimeout(() => overlay.remove(), 350);
   }
 

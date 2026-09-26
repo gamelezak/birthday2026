@@ -666,3 +666,17 @@ body.final-mode .progress-bar {
   .card-sign { transform: rotate(-2deg); }
   .fireworks { display: none; }
 }
+
+/* ======= ранний доступ к празднику (с index.html) ======= */
+.early-access { margin-top: 14px; }
+.early-access a {
+  color: rgba(255, 240, 250, .55);
+  font-size: 11px;
+  text-decoration: none;
+  letter-spacing: .5px;
+  transition: color .3s ease, text-shadow .3s ease;
+}
+.early-access a:hover {
+  color: #ffd98a;
+  text-shadow: 0 0 12px rgba(255, 180, 80, .8);
+}

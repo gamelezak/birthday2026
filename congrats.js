@@ -1,5 +1,13 @@
 /* ======= Страница поздравления ======= */
 
+/* если открыли congrats.html напрямую без index — фиксируем старт праздника,
+   чтобы index не «перепрыгивал» обратно бесконечно */
+try {
+  if (!sessionStorage.getItem('partyJustStarted')) {
+    sessionStorage.setItem('partyJustStarted', Date.now().toString());
+  }
+} catch (e) { /* приватный режим — не страшно */ }
+
 const $ = (id) => document.getElementById(id);
 const rand = (min, max) => min + Math.random() * (max - min);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];

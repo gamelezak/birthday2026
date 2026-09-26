@@ -142,10 +142,26 @@ function triggerParty() {
 
   document.body.classList.add('countdown-leaving');
 
-  /* через мгновение вспышки — летим на страницу праздника */
+  /* через мгновение вспышки — летим на страницу праздника
+     (собираем URL так, чтобы работало и в корне, и в подпадке GitHub Pages) */
   window.setTimeout(() => {
-    location.href = CONGRATS_PAGE + '?arrived=1';
+    location.assign(getCongratsUrl());
   }, 1500);
+}
+
+/* ======= Ссылка на страницу поздравления для GitHub Pages ======= */
+/* Если сайт лежит в подпадке (username.github.io/repo/), относительный путь
+   может резолвиться неверно из-за слэша в конце. Строим абсолютный URL
+   от фактического расположения index.html. */
+function getCongratsUrl() {
+  try {
+    return new URL(CONGRATS_PAGE, document.baseURI).href;
+  } catch (e) {
+    let base = location.pathname;
+    if (/\/$/.test(base)) base += 'index.html';
+    base = base.replace(/[^/]*$/, '');
+    return base + CONGRATS_PAGE + '?arrived=1';
+  }
 }
 
 function getTimeTheme(date = new Date()) {

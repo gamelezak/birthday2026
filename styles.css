@@ -393,7 +393,7 @@ h1 { color: var(--ui-title); }
   --ui-shadow: rgba(8, 4, 31, .42);
 }
 
-.scene.theme-night .badge { color: #f5eafa; box-shadow: 4px 4px 0 rgba(57, 33, 94, .65); }
+.scene.theme-night .badge { color: #635c66; box-shadow: 4px 4px 0 rgba(57, 33, 94, .65); }
 .scene.theme-night h1 { text-shadow: 2px 2px 0 rgba(70, 31, 88, .9); }
 .scene.theme-night .progress-bar {
   background: #648fca;
@@ -1000,7 +1000,7 @@ h1 { color: var(--ui-title); }
   position: fixed;
   inset: 0;
   pointer-events: none;
-  display: none;
+
   z-index: 90;
   box-shadow:
     inset 0 0 0 3px rgba(255, 109, 179, .55),

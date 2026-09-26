@@ -127,9 +127,40 @@ function updateCountdown() {
   /* включаем анимации по мере приближения праздника */
   updateProximity(diff);
 
-  /* таймер дошёл до нуля — запускаем party-переход
-     (во время повтора «последней минутки» не перепрыгиваем — ждём баннер) */
+  /* таймер дошёл до нуля — запускаем party-переход.
+     Во время повтора «последней минутки» переход НЕ делаем: там свой
+     финал — конфетти и баннер-открытка (onReplayFinished). */
   if (totalSeconds <= 0 && !replayRunning) triggerParty();
+}
+
+/* ======= ОТРИСОВКА ЭКРАНА ВО ВРЕМЯ ПОВТОРА «ПОСЛЕДНЕЙ МИНУТКИ» =======
+   Отдельная отрисовка: обычный updateCountdown считает diff от Даты
+   праздника в следующем году (getTargetDate), поэтому виртуальный
+   fakeNowOffset (-59с) для него почти незаметен (365 дней ± минута) —
+   цифры замирали на «000:00:00:00», а через секунду дошёл до нуля
+   срабатывал triggerParty() и уводил со страницы. Здесь же diff
+   считается напрямую из оставшихся виртуальных секунд повтора. */
+function renderReplayFrame(remainingMs) {
+  const diff = Math.max(0, remainingMs);
+
+  if (diff <= 10000 && !finalCountdownActive) startFinalCountdown();
+
+  const totalSeconds = Math.floor(diff / 1000);
+  setDigit('days', '000');
+  setDigit('hours', '00');
+  setDigit('minutes', pad(Math.floor(totalSeconds / 60)));
+  setDigit('seconds', pad(totalSeconds % 60));
+
+  progressBar.style.width = '100%';
+  percent.textContent = '100%';
+
+  if (finalCountdownActive) {
+    subtitle.textContent = 'Затаи дыхание: чудо уже на пороге...';
+  } else {
+    subtitle.textContent = 'Последняя минутка перед праздником!';
+  }
+
+  updateProximity(diff);
 }
 
 /* ======= ПЕРЕБОРКА ЦИФР: цифра «выкатывается» снизу вверх ======= */
@@ -382,12 +413,14 @@ function startFinalCountdown() {
    ============================================================ */
 let replayRunning = false;
 let replayRafId = null;
+let replayFinalized = false;
 
 function isBirthdayAnniversaryToday(date = new Date()) {
   const b = new Date(DEFAULT_BIRTHDAY);
   return date.getMonth() === b.getMonth() && date.getDate() === b.getDate();
 }
 
+/* ближайший «день рождения» в прошлом (или сегодня) — старт праздника */
 function lastBirthdayStart(nowMs) {
   const b = new Date(DEFAULT_BIRTHDAY);
   let year = new Date(nowMs).getFullYear();
@@ -409,13 +442,30 @@ function shouldReplayLastMinute() {
   return Date.now() >= t && Date.now() - t <= REPLAY_WINDOW_MS;
 }
 
-/* кнопка ручного повтора — только в «окне недели» после праздника */
-(function showReplayButton() {
+/* кнопка ручного повтора: видна только в «окне недели» после праздника.
+   Обработчик вешается один раз и всегда остаётся на месте — раньше он
+   навешивался только при загрузке страницы, а т.к. автоповтор стартовал
+   через 1.2с и прятал кнопку, клик по ней не приводил ни к чему. */
+const replayBtnEl = $('replayBtn');
+if (replayBtnEl) {
+  replayBtnEl.addEventListener('click', () => {
+    /* если вдруг оказались в party-режиме — возвращаемся на отсчёт */
+    if (partyTriggered) {
+      location.assign(getCongratsUrl().replace('congrats.html', 'index.html') + '?returning=1');
+      return;
+    }
+    startLastMinuteReplay({ force: true });
+  });
+}
+
+/* синхронизируем видимость кнопки с состоянием «окна недели» */
+function syncReplayButton() {
   const btn = $('replayBtn');
-  if (!btn || !shouldReplayLastMinute()) return;
-  btn.style.display = '';
-  btn.addEventListener('click', () => startLastMinuteReplay({ force: true }));
-})();
+  if (!btn) return;
+  if (replayRunning || partyTriggered) { btn.style.display = 'none'; return; }
+  btn.style.display = (shouldReplayLastMinute() || location.search.includes('replay=1')) ? '' : 'none';
+}
+syncReplayButton();
 
 /* не навязываем повтор чаще двух раз за день (кроме ручного запуска) */
 function replayAllowedToday(force) {
@@ -439,24 +489,32 @@ function startLastMinuteReplay(opts = {}) {
   if (!replayAllowedToday(force)) return false;
 
   replayRunning = true;
-  fakeNowOffset = -(60 * 1000 + 59 * 1000); /* стартуем с «осталось 59с» */
+  replayFinalized = false;
+  fakeNowOffset = -60 * 1000; /* виртуально «осталось 60 секунд» */
   scene.classList.add('replay-on');
-  const btn = $('replayBtn');
-  if (btn) btn.style.display = 'none';
+  syncReplayButton();          /* прячем кнопку на время повтора */
+  const banner = $('replayBanner');
+  if (banner) banner.remove();  /* на случай перезапуска из баннера */
   if (subtitle) subtitle.textContent = 'Последняя минутка перед праздником!';
 
-  let doneAtFired = false;
+  /* отрисовываем стартовый кадр сразу: иначе до первого rAF экран
+     мог показывать «00:00» и обычный setInterval успевал унести со страницы */
+  renderReplayFrame(60 * 1000);
+
   const realT0 = Date.now();
 
   const tick = () => {
+    if (!replayRunning) return; /* защита: повтор остановлен (stopLastMinuteReplay) */
     const elapsed = ((Date.now() - realT0) / 1000) * REPLAY_SPEED; /* виток ~24с */
-    const remaining = Math.max(0, 60 - elapsed);                   /* виртуальные секунды до нуля */
-    fakeNowOffset = -(60 - remaining) * 1000;
-    updateCountdown();
+    const remainingMs = Math.max(0, (60 - elapsed) * 1000);         /* виртуальные мс до нуля */
+    fakeNowOffset = -(60 * 1000 - remainingMs) / 1000 * 1000;
 
-    if (remaining <= 0) {
-      if (!doneAtFired) {
-        doneAtFired = true;
+    renderReplayFrame(remainingMs);
+
+    if (remainingMs <= 0) {
+      replayRafId = null;
+      if (!replayFinalized) {
+        replayFinalized = true;
         onReplayFinished();
       }
       return; /* цикл останавливает onReplayFinished */
@@ -470,22 +528,34 @@ function startLastMinuteReplay(opts = {}) {
 function stopLastMinuteReplay() {
   if (replayRafId) { cancelAnimationFrame(replayRafId); replayRafId = null; }
   replayRunning = false;
+  replayFinalized = false;
   fakeNowOffset = 0;
   resetNightDawn();
   scene.classList.remove('replay-on', 'replay-done');
   const banner = $('replayBanner');
   if (banner) banner.remove();
-  const btn = $('replayBtn');
-  if (shouldReplayLastMinute() && btn) btn.style.display = '';
+  syncReplayButton(); /* кнопка снова видна — можно прожить минутку ещё раз */
   updateCountdown();
 }
 
-/* финал повтора: вспышка, конфетти-салют, баннер-открытка */
+/* финал повтора: вспышка, конфетти-салют, баннер-открытка.
+   Визуально это тот же финал, что и у обычного отсчёта (нулевые цифры,
+   «рассвет» после нуля, салют), но навигацию НЕ делаем сразу — даём
+   прочитать открытку; переход вызывает та же triggerParty(), что и в
+   обычном отсчёте (конфетти + портал + congrats.html?arrived=1). */
 function onReplayFinished() {
   if (replayRafId) { cancelAnimationFrame(replayRafId); replayRafId = null; }
+  replayRunning = false; /* до нуля дошли: обычный tick больше не нужен,
+                            дальше живут баннер и кнопка «к празднику» */
   setDigit('days', '000'); setDigit('hours', '00');
   setDigit('minutes', '00'); setDigit('seconds', '00');
+  progressBar.style.width = '100%';
+  percent.textContent = '100%';
   scene.classList.add('replay-done');
+  /* порог последней минуты пройден — как и в обычном отсчёте, включаем
+     финальный режим (трясение карточки, свечение) и «рассвет» ночной темы */
+  if (!finalCountdownActive) startFinalCountdown();
+  updateProximity(0); /* lvl -> 5, сам запускает «рассвет» (animateNightDawn) */
 
   launchTransitionConfetti();
   if (subtitle) subtitle.textContent = 'С 19-ЛЕТИЕМ!';
@@ -501,11 +571,14 @@ function onReplayFinished() {
       <p>Праздник наступил ровно неделю назад (или меньше) —
          мы ещё раз прожили последние 60 секунд. С 19-летием!</p>
       <div class="replay-banner-actions">
+        <button class="btn rb-btn" id="replayToParty">ПЕРЕЙТИ К ПРАЗДНИКУ →</button>
         <button class="btn rb-btn" id="replayAgain">Ещё разок, только для тебя</button>
         <button class="btn rb-btn rb-btn-ghost" id="replayClose">Спасибо, я всё видела</button>
       </div>
     </div>`;
   scene.appendChild(banner);
+  /* главный шаг после финала минутки — переход на страницу поздравления */
+  banner.querySelector('#replayToParty').addEventListener('click', () => triggerParty());
   banner.querySelector('#replayAgain').addEventListener('click', () => {
     banner.remove();
     scene.classList.remove('replay-done');
@@ -517,6 +590,11 @@ function onReplayFinished() {
 /* ========= ПЕРЕХОД НА СТРАНИЦУ ПОЗДРАВЛЕНИЯ ========= */
 function triggerParty() {
   if (partyTriggered) return;
+
+  /* переход запускаем из финала «последней минутки» — сначала корректно
+     останавливаем повтор, чтобы rAF-цикл не продолжил работу на фоне */
+  if (replayRunning) stopLastMinuteReplay();
+
   partyTriggered = true;
 
   sessionStorage.setItem('partyJustStarted', Date.now().toString());
@@ -795,7 +873,7 @@ if (shouldReplayLastMinute()) {
 }
 
 /* отсчёт раз в секунду; с ?debug=N — N раз в секунду (ускорение таймера) */
-setInterval(updateCountdown, Math.max(40, Math.round(1000 / DEBUG_SPEED)));
+setInterval(() => { if (!replayRunning) updateCountdown(); }, Math.max(40, Math.round(1000 / DEBUG_SPEED)));
 
 /* при ускоренной проверке догоняем "виртуальное время" */
 if (DEBUG_SPEED > 1) {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#d9c8e4" />
-  <title>Счастливого дня рождения</title>
+  <title>Счастливого 19-летия</title>
   <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="stylesheet" href="styles.css" />
@@ -12,14 +12,14 @@
   <link rel="preload" href="congrats.html" as="document" />
 </head>
 <body>
-  <main class="scene theme-day" aria-label="Счётчик до дня рождения">
+  <main class="scene theme-day" aria-label="Счётчик до 19-летия">
     <div class="backgrounds" aria-hidden="true">
       <div class="background-layer background-day is-active"></div>
       <div class="background-layer background-night"></div>
     </div>
 
     <div class="sky-overlay" aria-hidden="true"></div>
-    <!-- Солнце и луна убраны по просьбе именинника: никаких светил и ореолов. -->
+    <!-- Солнце и луна убраны по просьбе Именинницы: никаких светил и ореолов. -->
     <div id="lanterns" class="layer" aria-hidden="true"></div>
     <div class="clouds" aria-hidden="true">
       <i class="cloud cloud-1"></i>
@@ -39,8 +39,8 @@
     <div class="bird-layer" id="birds" aria-hidden="true"></div>
 
     <section class="countdown-card">
-      <div class="badge">Осталось совсем немного волшебства</div>
-      <h1>ДО ДНЯ РОЖДЕНИЯ</h1>
+      <div class="badge">ПРАЗДНИК УЖЕ БЛИЗКО</div>
+      <h1>ДО 19-ЛЕТИЯ</h1>
       <p></p>
       
 
@@ -66,11 +66,11 @@
       <p class="early-access"><a href="congrats.html?arrived=1" id="earlyLink">Хочешь взглянуть на праздник раньше времени? →</a></p>
       <!-- кнопка появляется только в течение 7 дней после праздника (script.js) -->
       <button id="replayBtn" class="replay-btn" style="display:none"
-        title="Ещё раз прожить последние 60 секунд перед праздником">ПОСМОТРЕТЬ ФИНАЛЬНУЮ МИНУТУ ЗАНОВО</button>
+        title="Ещё раз прожить последние 60 секунд перед праздником">ПОСМОТРЕТЬ ПОСЛЕДНЮЮ МИНУТКУ ЗАНОВО</button>
     </section>
 
     <div class="flash-overlay" aria-hidden="true"></div>
-    <div class="boom-text" id="boomText" aria-hidden="true">С ДНЁМ РОЖДЕНИЯ!</div>
+    <div class="boom-text" id="boomText" aria-hidden="true">С 19-ЛЕТИЕМ!</div>
     <canvas class="portal-canvas" id="portalCanvas" aria-hidden="true"></canvas>
     
     <footer>каждый день ближе к главному дню в году</footer>

@@ -169,7 +169,8 @@ function updateProximity(diffMs) {
   for (let i = 1; i <= 5; i++) scene.classList.toggle('prox-l' + i, lvl >= i);
   scene.classList.toggle('party-border-on', lvl >= 3);
   if (lvl >= 1) spawnDustMotes();
-  if (lvl >= 2) startBalloons();
+  /* шарики всплывают только днём: с ночной темы убраны по просьбе Именинницы */
+  if (lvl >= 2 && !scene.classList.contains('theme-night')) startBalloons();
   if (lvl >= 3) buildBunting();
   if (lvl >= 4) { spawnFireflies(); startConfettiRain(); spawnLanterns(); }
   /* переступили порог последней минуты — в ночной теме начинается «рассвет» */
@@ -231,13 +232,22 @@ function spawnDustMotes() {
   if (!dustSpawnTimer) dustSpawnTimer = setInterval(add, 1400);
 }
 
-/* --- L2: воздушные шары поднимаются снизу (за неделю до) --- */
+/* --- L2: воздушные шары поднимаются снизу (за неделю до). Ночью — убраны. --- */
 let balloonTimer = null;
+function clearNightBalloons() {
+  /* ночная тема без шариков: убираем уже летящие и глушим запуск */
+  const rig = $('balloonRig');
+  if (rig) rig.innerHTML = '';
+  if (balloonTimer) { clearInterval(balloonTimer); balloonTimer = null; }
+}
 function startBalloons() {
   const rig = $('balloonRig');
   if (!rig || REDUCED_MOTION || balloonTimer) return;
+  if (scene.classList.contains('theme-night')) return;
   const colors = ['#ff6db3', '#ffd98a', '#7fc4ff', '#a86fe8', '#5ee8b7'];
   const launch = () => {
+    /* ночью новые шарики не запускаем */
+    if (scene.classList.contains('theme-night')) return;
     if (rig.children.length > 6) return;
     const b = document.createElement('span');
     b.className = 'float-balloon';
@@ -478,7 +488,7 @@ function onReplayFinished() {
   scene.classList.add('replay-done');
 
   launchTransitionConfetti();
-  if (subtitle) subtitle.textContent = 'С ДНЁМ РОЖДЕНИЯ!';
+  if (subtitle) subtitle.textContent = 'С 19-ЛЕТИЕМ!';
 
   const banner = document.createElement('div');
   banner.id = 'replayBanner';
@@ -487,9 +497,9 @@ function onReplayFinished() {
   banner.innerHTML = `
     <div class="replay-banner-inner">
       <span class="rb-spark" aria-hidden="true"></span>
-      <b>Та самая минута, вот она!</b>
-      <p>День рождения уже здесь, и мы ещё раз прожили его последние 60 секунд.
-         Пусть повторение принесёт столько же радости, сколько оригинал. С Днём Рождения!</p>
+      <b>ВОТ ОНА — ТА САМАЯ МИНУТА!</b>
+      <p>Праздник наступил ровно неделю назад (или меньше) —
+         мы ещё раз прожили последние 60 секунд. С 19-летием!</p>
       <div class="replay-banner-actions">
         <button class="btn rb-btn" id="replayAgain">Ещё разок, только для тебя</button>
         <button class="btn rb-btn rb-btn-ghost" id="replayClose">Спасибо, я всё видела</button>
@@ -532,7 +542,7 @@ function triggerParty() {
 
   const boom = document.querySelector('.boom-text');
   if (boom) {
-    boom.textContent = 'С ДНЁМ РОЖДЕНИЯ!';
+    boom.textContent = 'С 19-ЛЕТИЕМ!';
     boom.classList.add('show');
   }
 
@@ -732,10 +742,13 @@ function applyTheme(theme, immediate = false) {
   /* ночные «гости» (созвездие, фонарики) плавно выходят, днём — прячутся */
   scene.classList.toggle('night-sky-on', theme === 'night');
   if (theme === 'night') {
+    /* ночью шариков нет: убираем летящие и останавливаем запуск */
+    clearNightBalloons();
     /* зашли в ночь на L4+ — фонарики могут проснуться вместе с темнотой */
     spawnLanterns();
   } else {
     resetNightDawn(); /* вернулись к дневному фону — сбрасываем фильтр рассвета */
+    if (getProximityLevel() >= 2) startBalloons(); /* днём шарики возвращаются */
   }
   window.setTimeout(() => {
     switchInProgress = false;

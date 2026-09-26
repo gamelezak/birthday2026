@@ -23,6 +23,17 @@
          здесь только «живые» ореолы, привязанные к их местоположению. -->
     <div class="sun-glow" id="sunGlow" aria-hidden="true"><i class="sg-core"></i><i class="sg-flare f1"></i><i class="sg-flare f2"></i><i class="sg-flare f3"></i></div>
     <div class="moon-glow" id="moonGlow" aria-hidden="true"><i class="mg-ring"></i><i class="mg-ray r1"></i><i class="mg-ray r2"></i><i class="mg-ray r3"></i></div>
+    <!-- Ореолы небесных светил поверх фоновой картинки:
+         свой «живой» диск луны + пульсирующий ореол солнца -->
+    <div class="sky-orbits" aria-hidden="true">
+      <div class="sun-halo"></div>
+      <div class="moon-stage" id="moonStage">
+        <div class="moon-glow mg-halo"></div>
+        <div class="moon-body"><span class="crater c1"></span><span class="crater c2"></span><span class="crater c3"></span></div>
+      </div>
+    </div>
+    <canvas id="moonDust" class="layer" aria-hidden="true"></canvas>
+    <div id="lanterns" class="layer" aria-hidden="true"></div>
     <div class="clouds" aria-hidden="true">
       <i class="cloud cloud-1"></i>
       <i class="cloud cloud-2"></i>
@@ -34,7 +45,6 @@
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="constellation" id="constellation" aria-hidden="true"><svg viewBox="0 0 220 150" preserveAspectRatio="xMidYMid meet"><polyline points="14,118 52,78 96,96 138,44 176,66 206,26"/><circle cx="14" cy="118" r="3"/><circle cx="52" cy="78" r="4"/><circle cx="96" cy="96" r="3"/><circle cx="138" cy="44" r="4.5"/><circle cx="176" cy="66" r="3"/><circle cx="206" cy="26" r="4"/></svg></div>
     <div class="fireflies" id="fireflies" aria-hidden="true"></div>
-    <div class="lanterns" id="lanterns" aria-hidden="true"></div>
     <div class="dust-motes" id="dustMotes" aria-hidden="true"></div>
     <div class="balloon-rig" id="balloonRig" aria-hidden="true"></div>
     <div class="bunting-row" id="buntingRow" aria-hidden="true"></div>

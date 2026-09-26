@@ -358,11 +358,15 @@ function blowCandles() {
   if (cake.classList.contains('blown')) return;
   cake.classList.add('blown');
   cakeWrap.classList.add('no-glow');
-  document.querySelectorAll('.flame').forEach((f) => {
-    const smoke = document.createElement('span');
-    smoke.className = 'smoke';
-    f.parentElement.appendChild(smoke);
-    setTimeout(() => smoke.remove(), 1700);
+  // дым из пиксельных «дымовых точек» над погашенными свечами
+  document.querySelectorAll('.smoke-spot').forEach((spot) => {
+    for (let i = 0; i < 3; i++) {
+      const smoke = document.createElement('span');
+      smoke.className = 'smoke';
+      smoke.style.animationDelay = (i * 260) + 'ms';
+      spot.appendChild(smoke);
+      setTimeout(() => smoke.remove(), 1700 + i * 260);
+    }
   });
   blowHint.textContent = '✨ Желание загадано... ✨';
   setTimeout(() => {
@@ -396,9 +400,7 @@ $('surpriseBtn').addEventListener('click', () => {
   overlay.className = 'surprise-overlay';
   overlay.innerHTML = `
     <div class="surprise-box" role="button" tabindex="0" aria-label="Открыть подарок">
-      <div class="gift-body"></div>
-      <div class="gift-ribbon"></div>
-      <div class="gift-lid"><div class="gift-bow"></div></div>
+      <img class="gift-img" src="assets/gift-box.png" alt="" draggable="false" />
       <div class="surprise-caption">нажми на коробочку...</div>
       <div class="surprise-msg"></div>
     </div>`;

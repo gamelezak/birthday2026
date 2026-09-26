@@ -96,8 +96,11 @@ function updateCountdown() {
     subtitle.textContent = `Праздник наступит совсем скоро`;
   }
 
-  /* таймер дошёл до нуля — запускаем party-переход */
-  if (diff <= 0) triggerParty();
+  /* таймер дошёл до нуля — запускаем party-переход.
+     ВАЖНО: сравнение в целых секундах (totalSeconds), а не в миллисекундах,
+     иначе из-за округления книзу diff остаётся ~999мс ещё целый такт,
+     отсчёт «залипает» на 00:00 и переход никогда не срабатывает. */
+  if (totalSeconds <= 0) triggerParty();
 }
 
 /* ========= ФИНАЛЬНЫЙ ОТСЧЁТ (последние 10 секунд) ========= */
@@ -142,10 +145,26 @@ function triggerParty() {
 
   document.body.classList.add('countdown-leaving');
 
-  /* через мгновение вспышки — летим на страницу праздника */
+  /* через мгновение вспышки — летим на страницу праздника
+     (собираем URL так, чтобы работало и в корне, и в подпадке GitHub Pages) */
   window.setTimeout(() => {
-    location.href = CONGRATS_PAGE + '?arrived=1';
+    location.assign(getCongratsUrl() + '?arrived=1');
   }, 1500);
+}
+
+/* ======= Ссылка на страницу поздравления для GitHub Pages ======= */
+/* Если сайт лежит в подпадке (username.github.io/repo/), относительный путь
+   может резолвиться неверно из-за слэша в конце. Строим абсолютный URL
+   от фактического расположения index.html. */
+function getCongratsUrl() {
+  try {
+    return new URL(CONGRATS_PAGE, document.baseURI).href;
+  } catch (e) {
+    let base = location.pathname;
+    if (/\/$/.test(base)) base += 'index.html';
+    base = base.replace(/[^/]*$/, '');
+    return base + CONGRATS_PAGE;
+  }
 }
 
 function getTimeTheme(date = new Date()) {

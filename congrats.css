@@ -100,7 +100,7 @@ body.countdown-leaving .flash-overlay { animation: flash-boom 1.5s ease-out forw
   100% { opacity: 0; transform: scale(2.6); }
 }
 
-/* надпись "С ДНЁМ РОЖДЕНИЯ!" на странице ожидания перед переходом */
+/* надпись "С 19-ЛЕТИЕМ!" на странице ожидания перед переходом */
 .boom-text {
   position: fixed;
   inset: 0;
@@ -109,6 +109,10 @@ body.countdown-leaving .flash-overlay { animation: flash-boom 1.5s ease-out forw
   place-items: center;
   pointer-events: none;
   font-size: clamp(22px, 6vw, 60px);
+  padding: 0 16px;
+  max-width: 100vw;
+  text-align: center;
+  overflow-wrap: break-word;
   color: #fff3c4;
   text-shadow: 4px 4px 0 #b3387c, 0 0 30px rgba(255, 190, 90, .9);
   opacity: 0;
@@ -556,16 +560,8 @@ body.final-mode .progress-bar {
 }
 .confetti-layer { display: none; }
 
-/* шарики — canvas-слой */
-.balloon-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-  pointer-events: none;
-}
-.balloon-layer { display: none; }
+/* шарики убраны с поздравления: слои скрыты навсегда */
+.balloon-canvas, .balloon-layer { display: none; }
 
 /* сюрприз-оверлей */
 .surprise-overlay {
@@ -575,7 +571,7 @@ body.final-mode .progress-bar {
   display: grid;
   place-items: center;
   /* резервуар прокрутки: на маленьких экранах содержимое не «уходит» за кромку */
-  overflow-y: auto;
+  overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: max(64px, calc(env(safe-area-inset-top) + 56px)) 12px
@@ -585,6 +581,8 @@ body.final-mode .progress-bar {
   animation: fade-in .4s ease both;
 }
 @keyframes fade-in { from { opacity: 0; } }
+/* блокировка прокрутки страницы под открытым сюрпризом (мобильные iOS) */
+body.surprise-open { overflow: hidden; }
 .surprise-box {
   position: relative;
   width: 190px;
@@ -761,10 +759,13 @@ body.final-mode .progress-bar {
   animation: hint-wink 1.6s ease-in-out infinite;
 }
 .surprise-msg {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  /* НЕ position:absolute: на маленьких/низких экранах длинные послания
+     перестают обрезаться рамкой коробочки и уезжать за экран —
+     оверлей прокручивается целиком */
+  display: block;
+  box-sizing: border-box;
+  width: min(680px, calc(100vw - 24px));
+  margin: 14px auto 0;
   text-align: center;
   padding: clamp(12px, 4vw, 28px);
   font-size: clamp(13px, min(3.6vw, 5.2vh), 22px);
@@ -772,15 +773,26 @@ body.final-mode .progress-bar {
   color: #ffe9f6;
   text-shadow: 3px 3px 0 #b3387c;
   opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
   pointer-events: none;
   transform: scale(.4);
-  transition: transform .6s cubic-bezier(.2, 1.7, .4, 1), opacity .4s ease;
+  transition: transform .6s cubic-bezier(.2, 1.7, .4, 1), opacity .4s ease,
+              visibility .4s, max-height .4s ease;
 }
-.surprise-msg.show { opacity: 1; transform: scale(1); pointer-events: auto; }
+.surprise-msg.show {
+  opacity: 1;
+  visibility: visible;
+  max-height: none;
+  overflow: visible;
+  transform: scale(1);
+  pointer-events: auto;
+}
 /* «супер-сюрприз» — широкие надписи не должны упираться в узкий блок коробочки:
-   растягиваем слой текста на всю ширину оверлея (inset:0 уже задан выше) */
+   слой текста растянут на всю доступную ширину; внутренности — по центру */
 .surprise-msg > div {
-  max-width: min(680px, 94vw);
+  max-width: min(680px, calc(100vw - 24px));
   margin: 0 auto;
   overflow-wrap: break-word;
   word-break: normal;

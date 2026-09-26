@@ -376,6 +376,94 @@ body.final-mode .progress-bar {
   100% { opacity: 0; transform: translate(14px, -70px) scale(2.6); }
 }
 
+/* ======= живой огонь на свечах (накладывается поверх PNG-спрайта) ======= */
+.flame {
+  position: absolute;
+  left: 50%;
+  top: -13px;
+  width: 9px;
+  height: 15px;
+  margin-left: -4.5px;
+  border-radius: 50% 50% 46% 46% / 68% 68% 32% 32%;
+  background: radial-gradient(circle at 50% 78%, #fff6c8 0 22%, #ffd257 42%, #ff8a2e 72%, rgba(255, 90, 30, 0) 100%);
+  box-shadow: 0 0 12px 3px rgba(255, 170, 60, .55);
+  transform-origin: 50% 100%;
+  animation: flame-flicker 1s ease-in-out var(--fd, 0s) infinite alternate;
+  pointer-events: none;
+}
+/* «сердцевина» — холодная голубая зона у фитиля */
+.flame::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 5px;
+  height: 6px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(140, 200, 255, .9), rgba(140, 200, 255, 0) 70%);
+}
+@keyframes flame-flicker {
+  0%   { transform: scaleY(.9) scaleX(1) skewX(-4deg) translateY(0);    filter: brightness(.95); }
+  35%  { transform: scaleY(1.18) scaleX(.88) skewX(3deg) translateY(-2px); filter: brightness(1.1); }
+  70%  { transform: scaleY(1.02) scaleX(1.06) skewX(-2deg) translateY(0); filter: brightness(1); }
+  100% { transform: scaleY(1.22) scaleX(.82) skewX(5deg) translateY(-3px); filter: brightness(1.15); }
+}
+/* погасание: резкая вспышка → сдув вниз */
+.flame.out {
+  animation: blow-out .5s cubic-bezier(.4, 0, .8, .4) forwards;
+}
+@keyframes blow-out {
+  0%   { transform: scale(1.35, .7); opacity: 1; filter: brightness(1.6); }
+  40%  { transform: scale(.5, 1.5) translateY(-4px); opacity: .8; }
+  100% { transform: scale(.05) translateY(6px); opacity: 0; }
+}
+/* «ожившая» свеча из розыгрыша — загорается снизу вверх */
+.flame.relit { animation: relight-in .6s ease both, flame-flicker 1s .6s ease-in-out infinite alternate; }
+@keyframes relight-in {
+  from { transform: scale(.1); opacity: 0; }
+  60%  { transform: scale(1.3, 1.5); opacity: 1; }
+}
+
+/* искры от задутых свечей */
+.c-spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff7d8, #ffb347 60%, transparent);
+  box-shadow: 0 0 6px 2px rgba(255, 190, 90, .8);
+  pointer-events: none;
+  z-index: 4;
+  animation: c-spark-fly .75s ease-out forwards;
+}
+@keyframes c-spark-fly {
+  from { opacity: 1; transform: translate(0, 0) scale(1); }
+  to   { opacity: 0; transform: translate(var(--dx, 20px), var(--dy, -40px)) scale(.2); }
+}
+
+/* торт «пружинит» от радости после задутых свечей */
+.cake.joy-jiggle { animation: joy-jiggle .55s ease-in-out 3; }
+@keyframes joy-jiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  25% { transform: rotate(2deg) scale(1.03, .97); }
+  50% { transform: rotate(0) scale(.98, 1.03); }
+  75% { transform: rotate(-2deg) scale(1.03, .97); }
+}
+
+/* подсказка: мягкая вспышка при смене текста и мигание при бездействии */
+.blow-hint.hint-flash { animation: hint-flash .8s ease; }
+@keyframes hint-flash {
+  0% { opacity: 0; transform: translateY(6px) scale(.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.blow-hint.hint-nudge { animation: hint-nudge 1.4s ease-in-out infinite; color: #ffd98a; }
+@keyframes hint-nudge {
+  0%, 100% { opacity: 1; transform: scale(1); text-shadow: 0 0 0 rgba(255, 200, 100, 0); }
+  50% { opacity: .55; transform: scale(1.06); text-shadow: 0 0 18px rgba(255, 200, 100, .9); }
+}
+
 .blow-hint {
   margin: 14px 0 0;
   color: #ffd98a;
@@ -680,6 +768,26 @@ body.final-mode .progress-bar {
   transition: transform .6s cubic-bezier(.2, 1.7, .4, 1), opacity .4s ease;
 }
 .surprise-msg.show { opacity: 1; transform: scale(1); pointer-events: auto; }
+/* «супер-сюрприз» — широкие надписи не должны упираться в узкий блок коробочки:
+   растягиваем слой текста на всю ширину оверлея (inset:0 уже задан выше) */
+.surprise-msg > div { max-width: min(680px, 92vw); margin: 0 auto; }
+/* широкая «табелка» под реплики матрёшки — текст не выглядит сдавленным */
+.tease-plate {
+  background: rgba(16, 6, 40, .72);
+  border: 3px solid rgba(255, 190, 120, .55);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45), inset 0 0 24px rgba(168, 111, 232, .18);
+  padding: clamp(14px, 3vw, 26px) clamp(16px, 4vw, 36px);
+}
+.grand-title { letter-spacing: clamp(2px, .8vw, 6px); white-space: nowrap; }
+.grand-text {
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.7;
+  text-wrap: balance;
+}
+.surprise-bonus { max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+.surprise-caption { white-space: normal; width: min(92vw, 560px); line-height: 1.5; }
 /* закрытие оверлея — мягкий «выдох» */
 .surprise-overlay.closing { animation: overlay-out .35s ease both; }
 @keyframes overlay-out { to { opacity: 0; transform: scale(.92); } }
@@ -720,6 +828,8 @@ body.final-mode .progress-bar {
   .party-title .ltr, footer .beat,
   .gift-stack, .gift-glow, .surprise-burst span, .grand-rays,
   .grand-title, .grand-text, .surprise-bonus,
+  .flame, .flame.out, .flame.relit, .c-spark,
+  .cake.joy-jiggle, .blow-hint.hint-flash, .blow-hint.hint-nudge,
   .party-scene.drop-charge, .party-scene.drop-shake { animation: none !important; }
   .ltr { opacity: 1; transform: none; }
   .card-sign { transform: rotate(-2deg); }

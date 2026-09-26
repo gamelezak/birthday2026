@@ -85,13 +85,15 @@ requestAnimationFrame(skyFrame);
 const WISHES = [
   'Сегодня твой день! Пусть сбывается всё, во что ты веришь...',
   'Год назад ты ждал этого момента — и вот он наступил!',
-  'Пусть этот год будет полон приключений, смеха и чудес!'
+  'Пусть этот год будет полон приключений, смеха и чудес!',
+  'Желаю, чтобы этот год стал твоим личным космосом: новых орбит, смелых манёвров и планет, о которых ты ещё даже не мечтал(а)...',
+  'Здоровья — чтобы планы совпадали с силами, денег — чтобы мечты стоили меньше, чем возможности, и счастья — такого, которое не нужно объяснять!'
 ];
 
 function typeWish() {
   const el = $('typedWish');
   if (!el) return;
-  const text = WISHES.join(' ');
+  const text = pick(WISHES);
   let i = 0;
   const tick = () => {
     el.textContent = text.slice(0, ++i);
@@ -350,43 +352,154 @@ function fireworksSalvo(n = 6, every = 260) {
   for (let i = 0; i < n; i++) setTimeout(launchRocket, i * every);
 }
 
-/* ---------- торт: задуть свечи ---------- */
+/* ---------- торт: живой огонь, искры, дым, розыгрыш ---------- */
 const cake = document.querySelector('.cake');
 const cakeWrap = document.querySelector('.cake-wrap');
 const blowHint = $('blowHint');
 const wishScroll = $('wishScroll');
+const reduceMotion = window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const HINT_DEFAULT = '★ Кликни по торту — задумай желание и задуй свечи ★';
+const candleSpots = Array.from(document.querySelectorAll('.smoke-spot'));
+let prankUsed = false;   /* розыгрыш «свеча снова ожила» — ровно один раз */
+
+/* язычки пламени поверх пиксельных свечей на спрайте торта */
+if (!reduceMotion) {
+  candleSpots.forEach((spot, i) => {
+    const flame = document.createElement('span');
+    flame.className = 'flame';
+    flame.style.setProperty('--fd', (i * 0.27 + Math.random() * 0.15).toFixed(2) + 's');
+    spot.appendChild(flame);
+  });
+}
+
+/* sparks — маленький залп искр из точки (x, y в % от торта) */
+function spawnSparks(x, y, n = 9) {
+  for (let i = 0; i < n; i++) {
+    const sp = document.createElement('span');
+    sp.className = 'c-spark';
+    const a = rand(-Math.PI * .85, -Math.PI * .15);      /* вверх веером */
+    const d = rand(18, 46);
+    sp.style.left = x + '%';
+    sp.style.top = y + '%';
+    sp.style.setProperty('--dx', (Math.cos(a) * d).toFixed(0) + 'px');
+    sp.style.setProperty('--dy', (Math.sin(a) * d).toFixed(0) + 'px');
+    sp.style.animationDelay = (i * 22) + 'ms';
+    cake.appendChild(sp);
+    setTimeout(() => sp.remove(), 800 + i * 22);
+  }
+}
+
+function puffSmoke(spot, times = 3) {
+  for (let i = 0; i < times; i++) {
+    const smoke = document.createElement('span');
+    smoke.className = 'smoke';
+    smoke.style.animationDelay = (i * 260) + 'ms';
+    spot.appendChild(smoke);
+    setTimeout(() => smoke.remove(), 1700 + i * 260);
+  }
+}
+
+function extinguish(spot) {
+  const flame = spot.querySelector('.flame');
+  if (flame) {
+    flame.classList.add('out');
+    setTimeout(() => flame.remove(), 600);
+  }
+  const cx = spot.classList.contains('s0') ? 40.6 : spot.classList.contains('s2') ? 59.4 : 50;
+  const cy = spot.classList.contains('s1') ? 17.2 : 21.9;
+  spawnSparks(cx, cy);
+  puffSmoke(spot, 2);
+}
 
 function blowCandles() {
-  if (cake.classList.contains('blown')) return;
+  if (cake.classList.contains('blown')) return maybePrankRelight();
   cake.classList.add('blown');
   cakeWrap.classList.add('no-glow');
-  // дым из пиксельных «дымовых точек» над погашенными свечами
-  document.querySelectorAll('.smoke-spot').forEach((spot) => {
-    for (let i = 0; i < 3; i++) {
-      const smoke = document.createElement('span');
-      smoke.className = 'smoke';
-      smoke.style.animationDelay = (i * 260) + 'ms';
-      spot.appendChild(smoke);
-      setTimeout(() => smoke.remove(), 1700 + i * 260);
-    }
-  });
+  cake.classList.remove('joy-jiggle');
+  /* гасим свечи по очереди — слева направо, с задержкой */
+  candleSpots.forEach((spot, i) => setTimeout(() => extinguish(spot), i * 170));
   blowHint.textContent = '✨ Желание загадано... ✨';
+  blowHint.classList.add('hint-flash');
   setTimeout(() => {
     wishScroll.classList.remove('hidden');
-    fireworksSalvo(8, 200);
-    burstConfetti(120);
+    fireworksSalvo(10, 170);
+    burstConfetti(150);
+    if (!reduceMotion) {
+      cake.classList.add('joy-jiggle');
+      setTimeout(() => cake.classList.remove('joy-jiggle'), 1600);
+    }
   }, 700);
+  return undefined;
+}
+
+/* розыгрыш: после того как всё задуты, одна свеча «оживает» — ровно 1 раз */
+function maybePrankRelight() {
+  if (prankUsed || reduceMotion) return false;
+  prankUsed = true;
+  const spot = candleSpots[1] || candleSpots[0];
+  const flame = document.createElement('span');
+  flame.className = 'flame relit';
+  flame.style.setProperty('--fd', '0s');
+  spot.appendChild(flame);
+  cakeWrap.classList.remove('no-glow');
+  blowHint.textContent = 'Ой, она снова горит! Попробуй ещё раз 😉';
+  blowHint.classList.add('hint-flash');
+  setTimeout(() => {
+    flame.classList.add('out');
+    setTimeout(() => flame.remove(), 600);
+    puffSmoke(spot, 1);
+  }, 2600);
+  return true;
 }
 
 function relightCandles() {
-  cake.classList.remove('blown');
+  cake.classList.remove('blown', 'joy-jiggle');
   cakeWrap.classList.remove('no-glow');
   wishScroll.classList.add('hidden');
-  blowHint.textContent = '★ Кликни по торту — задумай желание и задуй свечи ★';
+  blowHint.textContent = HINT_DEFAULT;
+  blowHint.classList.remove('hint-flash');
+  if (!reduceMotion) {
+    candleSpots.forEach((spot, i) => {
+      spot.querySelectorAll('.flame, .smoke').forEach((el) => el.remove());
+      const flame = document.createElement('span');
+      flame.className = 'flame';
+      flame.style.setProperty('--fd', (i * 0.27 + Math.random() * 0.15).toFixed(2) + 's');
+      spot.appendChild(flame);
+    });
+  }
 }
 
 cake.addEventListener('click', blowCandles);
 $('relightBtn').addEventListener('click', relightCandles);
+
+/* автоподсказки: ротация текстов + мигание при бездействии */
+const HINT_ROTATION = [
+  '★ Кликни по торту — задумай желание и задуй свечи ★',
+  'Можно несколько раз кликнуть — говорят, так желания быстрее сбываются 😉',
+  'Говорят, если загадать желание под салют, оно точно сбудется...'
+];
+let hintIdx = 0;
+setInterval(() => {
+  if (cake.classList.contains('blown')) return;   /* показываем только «горящие» подсказки */
+  hintIdx = (hintIdx + 1) % HINT_ROTATION.length;
+  blowHint.textContent = HINT_ROTATION[hintIdx];
+}, 8000);
+let idleTimer = null;
+function armIdleNudge() {
+  clearTimeout(idleTimer);
+  blowHint.classList.remove('hint-nudge');
+  idleTimer = setInterval(() => {
+    if (!cake.classList.contains('blown')) blowHint.classList.add('hint-nudge');
+  }, 12000);
+}
+['click', 'pointerdown', 'keydown'].forEach((ev) =>
+  cake.addEventListener(ev, () => {
+    blowHint.classList.remove('hint-nudge');
+    armIdleNudge();
+  }));
+armIdleNudge();
 
 /* ---------- супер-сюрприз: многослойная «матрёшка» подарков ---------- */
 const SURPRISE_MESSAGES = [
@@ -497,7 +610,7 @@ $('surpriseBtn').addEventListener('click', () => {
   }
 
   function showTease(emoji, text, nextLabel) {
-    msg.innerHTML = `<div><span class="big-emoji">${emoji}</span>${text}<br/>
+    msg.innerHTML = `<div class="tease-plate"><span class="big-emoji">${emoji}</span>${text}<br/>
       <button class="btn surprise-next">${nextLabel}</button></div>`;
     msg.classList.add('show');
     msg.querySelector('.surprise-next').addEventListener('click', (e) => {

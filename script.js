@@ -47,6 +47,12 @@ const PROXIMITY_LEVELS = [
 ];
 let proximityLevel = 0;
 
+/* Текущий уровень приближения (0..5) — используется спавнерами
+   (фонарики стартуют только на L4+, на L5 ускоряются). */
+function getProximityLevel() {
+  return proximityLevel;
+}
+
 function getTargetDate() {
   let d = new Date(targetDate);
   if (Number.isNaN(d.getTime())) {
@@ -154,16 +160,23 @@ function updateProximity(diffMs) {
   const prev = proximityLevel;
   proximityLevel = lvl;
   scene.dataset.proximity = String(lvl);
+  /* CSS-классы уровней приближения (prox-l1..prox-l5) — для селекторов
+     ускорения анимаций (облака, фонарики и т.д.) */
+  for (let i = 1; i <= 5; i++) scene.classList.toggle('prox-l' + i, lvl >= i);
   scene.classList.toggle('party-border-on', lvl >= 3);
   if (lvl >= 1) spawnDustMotes();
   if (lvl >= 2) startBalloons();
   if (lvl >= 3) buildBunting();
-  if (lvl >= 4) { spawnFireflies(); startConfettiRain(); startLanterns(); }
+  if (lvl >= 4) { spawnFireflies(); startConfettiRain(); spawnLanterns(); }
   /* переступили порог последней минуты — в ночной теме начинается «рассвет» */
   if (prev < 5 && lvl >= 5) animateNightDawn();
+  /* вернулись к дневному/низкому уровню — сбрасываем inline-фильтр рассвета */
+  if (lvl < 5) resetNightDawn();
 }
 
-/* --- L5: ночной «рассвет праздника» — фон медленно светлеет в предрассветном тумане --- */
+/* --- L5: ночной «рассвет праздника» — фон медленно светлеет в предрассветном тумане ---
+   За 9 секунд поднимаем inline-фильтр ночного фона brightness(0.95→1.45),
+   saturate(0.9→1.35). Используется timestamp из rAF (не performance.now()). */
 let dawnRafId = null;
 function animateNightDawn() {
   const nightLayer = document.querySelector('.background-night');
@@ -185,6 +198,13 @@ function animateNightDawn() {
   }
   if (dawnRafId) cancelAnimationFrame(dawnRafId);
   dawnRafId = requestAnimationFrame(step);
+}
+
+/* сброс «рассвета»: возврат к дневному/низкому уровню или дневной теме */
+function resetNightDawn() {
+  const nightLayer = document.querySelector('.background-night');
+  if (dawnRafId) { cancelAnimationFrame(dawnRafId); dawnRafId = null; }
+  if (nightLayer) nightLayer.style.filter = '';
 }
 
 /* --- L1: парящая золотая пыль (появляется за месяц до) --- */
@@ -267,20 +287,28 @@ function spawnFireflies() {
   box.appendChild(frag);
 }
 
-/* --- L4+: небесные фонарики — всплывают снизу только в НОЧНОЙ теме --- */
+/* --- L4+: небесные фонарики — всплывают снизу только в НОЧНОЙ теме.
+   Идемпотентный запуск (флаг lanternStarted); на L5 скорость ×1.5. --- */
 let lanternTimer = null;
-function startLanterns() {
-  const rig = $('lanterns');
-  if (!rig || REDUCED_MOTION || lanternTimer) return;
+let lanternStarted = false;
+function spawnLanterns() {
+  const rig = document.getElementById('lanterns');
+  if (!rig || REDUCED_MOTION) return;
+  /* стартуем только если праздник близко (L4+) И на экране ночь */
+  if (!(getProximityLevel() >= 4 && scene.classList.contains('theme-night'))) return;
+  if (lanternStarted) return;
+  lanternStarted = true;
   const launch = () => {
     /* запускаем лишь когда на экране ночь — днём небо «спит» */
     if (!scene.classList.contains('theme-night')) return;
     if (rig.children.length > 5) return;
     const l = document.createElement('span');
     l.className = 'sky-lantern';
+    /* на последнем уровне фонарики взлетают в 1.5 раза быстрее */
+    const speedUp = getProximityLevel() >= 5 ? 1 / 1.5 : 1;
     l.style.setProperty('--lx', `${(6 + Math.random() * 86).toFixed(1)}vw`);
     l.style.setProperty('--ls', `${(0.6 + Math.random() * 0.55).toFixed(2)}`);
-    l.style.setProperty('--ldur', `${(17 + Math.random() * 10).toFixed(1)}s`);
+    l.style.setProperty('--ldur', `${((17 + Math.random() * 10) * speedUp).toFixed(1)}s`);
     l.style.setProperty('--lsway', `${(-30 + Math.random() * 60).toFixed(0)}px`);
     rig.appendChild(l);
     l.addEventListener('animationend', () => l.remove());
@@ -289,21 +317,23 @@ function startLanterns() {
   lanternTimer = setInterval(launch, 6500);
 }
 
-/* --- фаза Луны: считаем реальную освещённость и сдвигаем «тень» луны --- */
+/* --- фаза Луны: считаем реальную освещённость и сдвигаем «тень» луны.
+   Тело луны (.moon-body) — круг с радиальным градиентом; псевдоэлемент-тень
+   сдвигается по --moon-shadow-x, маска — mask-image: radial-gradient. --- */
+const MOON_EPOCH = new Date(2000, 0, 6).getTime(); /* известное новолуние */
+const SYNODIC_MONTH = 29.53;                       /* синодический месяц, суток */
+
 function updateMoonPhase(date = new Date()) {
-  const moon = $('moon');
-  if (!moon) return;
-  /* синодический месяц 29.53 дня; известное новолуние: 6 января 2000, 18:14 UTC */
-  const SYNODIC = 29.530588853;
-  const NEW_MOON = Date.UTC(2000, 0, 6, 18, 14);
-  const days = ((date.getTime() - NEW_MOON) / 86400000) % SYNODIC;
-  const phase = (days + SYNODIC) % SYNODIC / SYNODIC; /* 0..1 */
-  /* смещение маски-«тени»: на растущей тень уходит влево, на убывающей — вправо */
-  const shift = Math.round(Math.sin(phase * Math.PI * 2) * 34);
-  moon.style.setProperty('--moon-shadow-x', `${shift}px`);
-  /* лёгкое дыхание свечения зависит от полноты луны */
-  const fullness = (1 - Math.abs(phase - 0.5) * 2);
-  moon.style.setProperty('--moon-glow', `${(0.45 + fullness * 0.55).toFixed(2)}`);
+  const moon = document.querySelector('.moon-stage');
+  if (!moon) return null;
+  const age = (((date.getTime() - MOON_EPOCH) / 86400000) % SYNODIC_MONTH + SYNODIC_MONTH) % SYNODIC_MONTH;
+  const phase = age / SYNODIC_MONTH;                    /* 0..1 */
+  const illum = (1 - Math.cos(2 * Math.PI * phase)) / 2; /* 0..1 освещённость */
+  /* смещение теневой маски: 0% — полнолуние (тени нет), 100% — новолуние */
+  moon.style.setProperty('--moon-shadow-x', `${(illum * 100).toFixed(1)}%`);
+  /* свечение ореола зависит от полноты луны */
+  moon.style.setProperty('--moon-glow', `${(0.35 + illum * 0.65).toFixed(3)}`);
+  return { age, phase, illum };
 }
 
 /* --- L4: конфетти-дождь (за час до праздника) + усиление с уровнем --- */
@@ -570,7 +600,13 @@ function applyTheme(theme, immediate = false) {
   currentTheme = theme;
   /* ночные «гости»: луна и созвездие плавно выходят, днём — прячутся */
   scene.classList.toggle('night-sky-on', theme === 'night');
-  if (theme === 'night') updateMoonPhase();
+  updateMoonPhase(); /* фаза актуальна при каждой смене темы (и при старте) */
+  if (theme === 'night') {
+    /* зашли в ночь на L4+ — фонарики могут проснуться вместе с темнотой */
+    spawnLanterns();
+  } else {
+    resetNightDawn(); /* вернулись к дневному фону — сбрасываем фильтр рассвета */
+  }
   window.setTimeout(() => {
     switchInProgress = false;
   }, immediate ? 50 : BACKGROUND_FADE_DELAY + 100);
@@ -792,3 +828,76 @@ setInterval(syncBirds, THEME_CHECK_INTERVAL);
   }
   requestAnimationFrame(frame);
 })();
+
+/* ======= ЛУННАЯ ПЫЛЬ — отдельный canvas #moonDust (рисуется только ночью) ======= */
+const moonDustCanvas = $('moonDust');
+(function moonDustLayer() {
+  const cv = moonDustCanvas;
+  if (!cv || !cv.getContext || REDUCED_MOTION) return;
+  const ctx = cv.getContext('2d');
+  let W = 0, H = 0;
+  function fit() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cv.width = W * dpr;
+    cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  const motes = [];
+  function spawn() {
+    if (motes.length > 30 || Math.random() > 0.4) return;
+    motes.push({
+      x: Math.random() * W,
+      y: -6,
+      vy: 0.2 + Math.random() * 0.5,
+      swayA: 12 + Math.random() * 28,
+      swayF: 0.007 + Math.random() * 0.013,
+      seed: Math.random() * 100,
+      r: 0.8 + Math.random() * 1.5,
+      life: 0
+    });
+  }
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    /* слой живёт только ночью; при переключении на день — очищаем канвас */
+    if (scene.classList.contains('theme-night')) {
+      spawn();
+      for (let i = motes.length - 1; i >= 0; i--) {
+        const d = motes[i];
+        d.life++;
+        d.y += d.vy;
+        const x = d.x + Math.sin(d.life * d.swayF + d.seed) * d.swayA;
+        const fade = Math.min(1, d.life / 40) * Math.max(0, 1 - d.y / H);
+        ctx.globalAlpha = fade * 0.55;
+        ctx.fillStyle = 'rgba(207,220,255,1)';
+        ctx.beginPath();
+        ctx.arc(x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fill();
+        if (d.y > H || fade <= 0) motes.splice(i, 1);
+      }
+      ctx.globalAlpha = 1;
+    } else if (motes.length) {
+      motes.length = 0; /* днём — пусто */
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ======= экспорт небольшого API для интеграционных DOM-тестов ======= */
+window.birthdayCountdown = {
+  getProximityLevel,
+  updateMoonPhase,
+  updateProximity,
+  applyTheme,
+  animateNightDawn,
+  resetNightDawn,
+  spawnLanterns,
+  isLanternStarted: () => lanternStarted,
+  MOON_EPOCH,
+  SYNODIC_MONTH
+};

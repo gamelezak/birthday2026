@@ -117,11 +117,11 @@ function updateCountdown() {
   percent.textContent = `${Math.round(p)}%`;
 
   if (finalCountdownActive) {
-    subtitle.textContent = 'СЕЙЧАС ПРОИЗОЙДЁТ ЧУДО...';
+    subtitle.textContent = 'Затаи дыхание: чудо уже на пороге...';
   } else if (diff <= 60000) {
     subtitle.textContent = 'Последняя минутка перед праздником!';
   } else {
-    subtitle.textContent = `Праздник наступит совсем скоро`;
+    subtitle.textContent = 'Совсем скоро здесь начнётся праздник';
   }
 
   /* включаем анимации по мере приближения праздника */
@@ -433,7 +433,7 @@ function startLastMinuteReplay(opts = {}) {
   scene.classList.add('replay-on');
   const btn = $('replayBtn');
   if (btn) btn.style.display = 'none';
-  if (subtitle) subtitle.textContent = '⏳ Последняя минутка перед праздником!';
+  if (subtitle) subtitle.textContent = 'Последняя минутка перед праздником!';
 
   let doneAtFired = false;
   const realT0 = Date.now();
@@ -487,12 +487,12 @@ function onReplayFinished() {
   banner.innerHTML = `
     <div class="replay-banner-inner">
       <span class="rb-spark" aria-hidden="true"></span>
-      <b>ВОТ ОНА — ТА САМАЯ МИНУТА!</b>
-      <p>Праздник наступил ровно неделю назад (или меньше) —
-         мы ещё раз прожили последние 60 секунд. С Днём Рождения!</p>
+      <b>Та самая минута, вот она!</b>
+      <p>День рождения уже здесь, и мы ещё раз прожили его последние 60 секунд.
+         Пусть повторение принесёт столько же радости, сколько оригинал. С Днём Рождения!</p>
       <div class="replay-banner-actions">
-        <button class="btn rb-btn" id="replayAgain">Ещё разок</button>
-        <button class="btn rb-btn rb-btn-ghost" id="replayClose">Ок, спасибо</button>
+        <button class="btn rb-btn" id="replayAgain">Ещё разок, только для тебя</button>
+        <button class="btn rb-btn rb-btn-ghost" id="replayClose">Спасибо, я всё видела</button>
       </div>
     </div>`;
   scene.appendChild(banner);
@@ -520,7 +520,7 @@ function triggerParty() {
   }
   if (progressBar) progressBar.style.width = '100%';
   if (percent) percent.textContent = '100%';
-  if (subtitle) subtitle.textContent = 'ПРАЗДНИК НАЧАЛСЯ!';
+  if (subtitle) subtitle.textContent = 'Праздник начался: с Днём Рождения!';
 
   /* золотая вспышка + прощальная надпись поверх карточки */
   const flash = document.querySelector('.flash-overlay');
@@ -771,7 +771,7 @@ applyTheme(getTimeTheme(), true);
 /* если вернулись со страницы праздника — не перепрыгиваем сразу обратно */
 if (location.search.includes('returning=1')) {
   partyTriggered = true;
-  subtitle.textContent = 'Праздник уже здесь — но можно подождать ещё годик!';
+  subtitle.textContent = 'Праздник уже здесь, но отсчёт можно начать заново!';
 }
 
 updateCountdown();
@@ -830,6 +830,11 @@ function spawnBirdFlock() {
     bird.addEventListener('animationend', (event) => {
       if (event.animationName.includes('flight')) bird.remove();
     });
+    /* страховка: если событие animationend потерялось (переключение темы,
+       фоновая вкладка), убираем птицу сами, чтобы слой не накапливал узлы */
+    const lifetime = (parseFloat(bird.style.getPropertyValue('--bird-duration')) +
+                      parseFloat(bird.style.getPropertyValue('--bird-delay')) + 2) * 1000;
+    window.setTimeout(() => bird.remove(), lifetime);
     birdLayer.appendChild(bird);
   }
 }

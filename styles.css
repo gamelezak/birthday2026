@@ -476,8 +476,9 @@ h1 { color: var(--ui-title); }
   height: 110px;
   background-image: url('assets/birds/bird_fly_clean_16.png');
   background-repeat: no-repeat;
+  /* кадры спрайта (по 140px) выровнены по левому краю полос 150px */
   background-position: 0 0;
-  background-size: 2240px 110px;
+  background-size: 2400px 120px;
   image-rendering: pixelated;
   animation: bird-wings var(--bird-flap, 1.45s) steps(16, end) infinite;
   will-change: background-position;
@@ -490,10 +491,11 @@ h1 { color: var(--ui-title); }
   transform: scaleX(-1) scale(var(--bird-scale));
 }
 
+/* шаги сдвигают окно на 150px за кадр; последний шаг уходит за полосу и
+   мгновенно возвращается к нулю — все 16 кадров проигрываются равномерно */
 @keyframes bird-wings {
-  0% { background-position: 0 0; }
-
-  100%   { background-position: -2240px 0; }
+  from { background-position-x: 0; }
+  to   { background-position-x: -2400px; }
 }
 
 @keyframes bird-flight {

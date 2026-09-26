@@ -155,13 +155,24 @@ function confFrame(t) {
     cctx.translate(p.x, p.y);
     cctx.rotate(p.rot);
     cctx.scale(1, Math.max(.15, Math.abs(scaleY)));
-    cctx.fillStyle = p.color;
+    /* «теневая» сторона при обороте — бумажный объём */
+    cctx.fillStyle = scaleY < -.25 ? shade(p.color, -75) : p.color;
     if (p.round) {
       cctx.beginPath();
       cctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
       cctx.fill();
+      /* блик на «лицевой» стороне кружка */
+      if (scaleY > .45) {
+        cctx.fillStyle = 'rgba(255,255,255,.5)';
+        cctx.beginPath();
+        cctx.arc(-p.w * .16, -p.w * .16, p.w * .18, 0, Math.PI * 2);
+        cctx.fill();
+      }
     } else {
       cctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      /* светлая кромка-фаска у прямоугольных конфеттинок */
+      cctx.fillStyle = 'rgba(255,255,255,.28)';
+      cctx.fillRect(-p.w / 2, -p.h / 2, p.w, Math.max(1.5, p.h * .18));
     }
     cctx.restore();
   }
@@ -270,6 +281,7 @@ const canvas = $('fireworks');
 const ctx = canvas.getContext('2d');
 let particles = [];
 let rockets = [];
+let shockwaves = [];
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -281,6 +293,15 @@ window.addEventListener('resize', () => { resizeSky(); resizeCanvas(); resizeCon
 
 function explode(x, y, color) {
   const n = 46;
+  /* «первое вспышечное ядро» — короткая белая сердцевина взрыва */
+  for (let i = 0; i < 6; i++) {
+    const a = rand(0, Math.PI * 2);
+    const sp = rand(.2, 1.1);
+    particles.push({
+      x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      life: rand(8, 14), age: 0, color: '#fffbe8', size: rand(3, 5)
+    });
+  }
   for (let i = 0; i < n; i++) {
     const angle = (Math.PI * 2 * i) / n + rand(-.1, .1);
     const speed = rand(1.6, 5.4);
@@ -291,9 +312,11 @@ function explode(x, y, color) {
       life: rand(50, 90),
       age: 0,
       color,
-      size: rand(1.5, 3.2)
+      size: rand(1.5, 3.2),
+      tw: Math.random() > .7 ? rand(6, 12) : 0   /* часть искр мерцает */
     });
   }
+  shockwaves.push({ x, y, r: 6, max: rand(70, 110), alpha: .5 });
 }
 
 function launchRocket() {
@@ -314,15 +337,39 @@ function frame() {
 
   for (let i = rockets.length - 1; i >= 0; i--) {
     const r = rockets[i];
+    /* лёгкий зигзаг — ракета «виляет», как настоящая */
+    r.x += Math.sin(r.y * .045) * .7;
     r.y += r.vy;
     ctx.fillStyle = r.color;
     ctx.beginPath();
     ctx.arc(r.x, r.y, 2.4, 0, Math.PI * 2);
     ctx.fill();
+    /* искристый хвост */
+    ctx.fillStyle = 'rgba(255, 236, 180, .8)';
+    for (let tr = 1; tr <= 3; tr++) {
+      ctx.globalAlpha = .5 / tr;
+      ctx.beginPath();
+      ctx.arc(r.x - Math.sin((r.y + tr * 6) * .045) * tr, r.y + tr * 7, 1.6 - tr * .35, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
     if (r.y <= r.targetY) {
       explode(r.x, r.y, r.color);
       rockets.splice(i, 1);
     }
+  }
+
+  /* расходящиеся кольца ударной волны */
+  for (let i = shockwaves.length - 1; i >= 0; i--) {
+    const wv = shockwaves[i];
+    wv.r += (wv.max - wv.r) * .12 + 1.2;
+    wv.alpha *= .9;
+    ctx.strokeStyle = `rgba(255, 244, 210, ${Math.max(0, wv.alpha)})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(wv.x, wv.y, wv.r, 0, Math.PI * 2);
+    ctx.stroke();
+    if (wv.alpha < .02 || wv.r >= wv.max - 2) shockwaves.splice(i, 1);
   }
 
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -333,7 +380,9 @@ function frame() {
     p.vy += .045;
     p.vx *= .985;
     p.vy *= .985;
-    const alpha = Math.max(0, 1 - p.age / p.life);
+    let alpha = Math.max(0, 1 - p.age / p.life);
+    /* мерцающие искры: затухание с синусоидальными «вспышками» */
+    if (p.tw) alpha *= .55 + .45 * Math.abs(Math.sin(p.age / p.tw * Math.PI));
     ctx.globalAlpha = alpha;
     ctx.fillStyle = p.color;
     ctx.beginPath();
@@ -362,7 +411,7 @@ const wishScroll = $('wishScroll');
 const reduceMotion = window.matchMedia &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const HINT_DEFAULT = '★ Кликни по торту — задумай желание и задуй свечи ★';
+const HINT_DEFAULT = 'Кликни по торту — задумай желание и задуй свечи';
 const candleSpots = Array.from(document.querySelectorAll('.smoke-spot'));
 let prankUsed = false;   /* розыгрыш «свеча снова ожила» — ровно один раз */
 
@@ -422,7 +471,7 @@ function blowCandles() {
   cake.classList.remove('joy-jiggle');
   /* гасим свечи по очереди — слева направо, с задержкой */
   candleSpots.forEach((spot, i) => setTimeout(() => extinguish(spot), i * 170));
-  blowHint.textContent = '✨ Желание загадано... ✨';
+  blowHint.textContent = 'Желание загадано!';
   blowHint.classList.add('hint-flash');
   setTimeout(() => {
     wishScroll.classList.remove('hidden');
@@ -446,7 +495,7 @@ function maybePrankRelight() {
   flame.style.setProperty('--fd', '0s');
   spot.appendChild(flame);
   cakeWrap.classList.remove('no-glow');
-  blowHint.textContent = 'Ой, она снова горит! Попробуй ещё раз 😉';
+  blowHint.textContent = 'Ой, она снова горит! Попробуй ещё раз';
   blowHint.classList.add('hint-flash');
   setTimeout(() => {
     flame.classList.add('out');
@@ -478,8 +527,8 @@ $('relightBtn').addEventListener('click', relightCandles);
 
 /* автоподсказки: ротация текстов + мигание при бездействии */
 const HINT_ROTATION = [
-  '★ Кликни по торту — задумай желание и задуй свечи ★',
-  'Можно и свайпом! Резко проведи пальцем по торту — задует все свечи разом 😉',
+  'Кликни по торту — задумай желание и задуй свечи',
+  'Можно и свайпом! Резко проведи пальцем по торту — задует все свечи разом',
   'Говорят, желания под салют сбываются быстрее... но сначала их надо загадать!'
 ];
 let hintIdx = 0;
@@ -575,6 +624,10 @@ $('surpriseBtn').addEventListener('click', () => {
       <div class="surprise-msg"></div>
     </div>`;
   document.body.appendChild(overlay);
+  /* на мобильных: блокируем прокрутку страницы под оверлеем,
+     чтобы содержимое сюрприза не «уезжало» за экран */
+  const prevBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
 
   const box = overlay.querySelector('.surprise-box');
   const msg = overlay.querySelector('.surprise-msg');
@@ -595,7 +648,7 @@ $('surpriseBtn').addEventListener('click', () => {
     const frag = document.createDocumentFragment();
     for (let i = 0; i < n; i++) {
       const s = document.createElement('span');
-      s.textContent = pick(['✦', '✧', '★', '•']);
+      s.textContent = pick(['●', '○', '◆', '▪']);
       const a = rand(0, Math.PI * 2);
       const d = rand(46, 130);
       s.style.setProperty('--dx', `${(Math.cos(a) * d).toFixed(0)}px`);
@@ -654,7 +707,7 @@ $('surpriseBtn').addEventListener('click', () => {
         grandSalvo();
         const [sprite, text] = pick(SURPRISE_MESSAGES);
         const bonus = revealCount > 1
-          ? `<div class="surprise-bonus">Ты открыл(а) сюрприз ${revealCount}-й раз — чемпион праздника 🏆</div>`
+          ? `<div class="surprise-bonus">Ты открыл(а) сюрприз ${revealCount}-й раз — чемпион праздника</div>`
           : '';
         msg.innerHTML = `<div class="grand-reveal">
             <div class="grand-rays" aria-hidden="true"></div>
@@ -677,7 +730,7 @@ $('surpriseBtn').addEventListener('click', () => {
       burstConfetti(40 + layer * 30);
       setTimeout(() => {
         showTease(gift.sprite, gift.alt, gift.tease,
-          layer === NESTED_GIFTS.length - 1 ? '🎁 ПОСЛЕДНИЙ СЛОЙ!' : 'Открыть дальше →');
+          layer === NESTED_GIFTS.length - 1 ? 'ПОСЛЕДНИЙ СЛОЙ!' : 'Открыть дальше →');
         animating = false;
       }, 520);
     }
@@ -685,6 +738,7 @@ $('surpriseBtn').addEventListener('click', () => {
 
   function closeOverlay() {
     overlay.classList.add('closing');
+    document.body.style.overflow = prevBodyOverflow || '';
     setTimeout(() => overlay.remove(), 350);
   }
 

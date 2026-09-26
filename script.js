@@ -13,6 +13,12 @@ const NIGHT_START = 18;
 const THEME_CHECK_INTERVAL = 15000;
 const BACKGROUND_FADE_DELAY = 3000;
 
+/* «Последняя минутка»: в течение недели после праздника при каждом
+   посещении страницы проигрывается финальный отсчёт последних 60 секунд. */
+const REPLAY_WINDOW_MS = 7 * 86400e3;
+const REPLAY_SPEED = 2.5;                 /* темп повтора (реальных секунд на виток) */
+const REPLAY_KEY = 'lastMinuteReplay';    /* sessionStorage: отметки показов повтора */
+
 const $ = (id) => document.getElementById(id);
 const subtitle = $('subtitle');
 const progressBar = $('progressBar');
@@ -111,7 +117,7 @@ function updateCountdown() {
   percent.textContent = `${Math.round(p)}%`;
 
   if (finalCountdownActive) {
-    subtitle.textContent = '🎇 СЕЙЧАС ПРОИЗОЙДЁТ ЧУДО... 🎇';
+    subtitle.textContent = 'СЕЙЧАС ПРОИЗОЙДЁТ ЧУДО...';
   } else if (diff <= 60000) {
     subtitle.textContent = 'Последняя минутка перед праздником!';
   } else {
@@ -121,11 +127,9 @@ function updateCountdown() {
   /* включаем анимации по мере приближения праздника */
   updateProximity(diff);
 
-  /* таймер дошёл до нуля — запускаем party-переход.
-     ВАЖНО: сравнение в целых секундах (totalSeconds), а не в миллисекундах,
-     иначе из-за округления книзу diff остаётся ~999мс ещё целый такт,
-     отсчёт «залипает» на 00:00 и переход никогда не срабатывает. */
-  if (totalSeconds <= 0) triggerParty();
+  /* таймер дошёл до нуля — запускаем party-переход
+     (во время повтора «последней минутки» не перепрыгиваем — ждём баннер) */
+  if (totalSeconds <= 0 && !replayRunning) triggerParty();
 }
 
 /* ======= ПЕРЕБОРКА ЦИФР: цифра «выкатывается» снизу вверх ======= */
@@ -317,24 +321,7 @@ function spawnLanterns() {
   lanternTimer = setInterval(launch, 6500);
 }
 
-/* --- фаза Луны: считаем реальную освещённость и сдвигаем «тень» луны.
-   Тело луны (.moon-body) — круг с радиальным градиентом; псевдоэлемент-тень
-   сдвигается по --moon-shadow-x, маска — mask-image: radial-gradient. --- */
-const MOON_EPOCH = new Date(2000, 0, 6).getTime(); /* известное новолуние */
-const SYNODIC_MONTH = 29.53;                       /* синодический месяц, суток */
-
-function updateMoonPhase(date = new Date()) {
-  const moon = document.querySelector('.moon-stage');
-  if (!moon) return null;
-  const age = (((date.getTime() - MOON_EPOCH) / 86400000) % SYNODIC_MONTH + SYNODIC_MONTH) % SYNODIC_MONTH;
-  const phase = age / SYNODIC_MONTH;                    /* 0..1 */
-  const illum = (1 - Math.cos(2 * Math.PI * phase)) / 2; /* 0..1 освещённость */
-  /* смещение теневой маски: 0% — полнолуние (тени нет), 100% — новолуние */
-  moon.style.setProperty('--moon-shadow-x', `${(illum * 100).toFixed(1)}%`);
-  /* свечение ореола зависит от полноты луны */
-  moon.style.setProperty('--moon-glow', `${(0.35 + illum * 0.65).toFixed(3)}`);
-  return { age, phase, illum };
-}
+/* --- фаза Луны удалена: луна больше не рисуется на странице --- */
 
 /* --- L4: конфетти-дождь (за час до праздника) + усиление с уровнем --- */
 let confettiTimer = null;
@@ -356,11 +343,13 @@ function startConfettiRain() {
     c.addEventListener('animationend', () => c.remove());
   };
   for (let i = 0; i < 8; i++) setTimeout(drop, i * 260);
-  /* чем ближе праздник — тем гуще дождь */
+  /* чем ближе праздник — тем гуще дождь; во время повтора «последней
+     минутки» конфетти сыплется вдвое активнее (нарастающий нетерпёж) */
   const tick = () => {
-    const n = proximityLevel >= 5 ? 3 : 1;
+    const frenzy = replayRunning ? 2 : 1;
+    const n = (proximityLevel >= 5 ? 3 : 1) * frenzy;
     for (let i = 0; i < n; i++) drop();
-    confettiTimer = setTimeout(tick, proximityLevel >= 5 ? 500 : 1100);
+    confettiTimer = setTimeout(tick, (proximityLevel >= 5 ? 500 : 1100) / frenzy);
   };
   confettiTimer = setTimeout(tick, 1100);
 }
@@ -371,6 +360,148 @@ function startFinalCountdown() {
   const card = document.querySelector('.countdown-card');
   if (card) card.classList.add('final-shake');
   document.body.classList.add('final-mode');
+}
+
+/* ============================================================
+   РЕЖИМ «ПОСЛЕДНЕЙ МИНУТКИ» (7 дней после праздника)
+   При посещении страницы в течение недели после наступления
+   праздника проигрывается повтор последних 60 секунд отсчёта:
+   цифры идут 59→0, на пороге −60с включается L4 (сияние/фонарики),
+   на −10с — финальный режим, на нуле — «рассвет», салют из
+   конфетти и баннер-открытка. В обычном режиме кнопка не видна.
+   ============================================================ */
+let replayRunning = false;
+let replayRafId = null;
+
+function isBirthdayAnniversaryToday(date = new Date()) {
+  const b = new Date(DEFAULT_BIRTHDAY);
+  return date.getMonth() === b.getMonth() && date.getDate() === b.getDate();
+}
+
+function lastBirthdayStart(nowMs) {
+  const b = new Date(DEFAULT_BIRTHDAY);
+  let year = new Date(nowMs).getFullYear();
+  let start = new Date(year, b.getMonth(), b.getDate(),
+    b.getHours() || 0, b.getMinutes() || 0, 0, 0);
+  if (start.getTime() > nowMs) {
+    year -= 1;
+    start = new Date(year, b.getMonth(), b.getDate(),
+      b.getHours() || 0, b.getMinutes() || 0, 0, 0);
+  }
+  return start;
+}
+
+/* показываем ли повтор? (в окне 7 дней или принудительно ?replay=1) */
+function shouldReplayLastMinute() {
+  if (location.search.includes('replay=0')) return false;
+  if (location.search.includes('replay=1')) return true;
+  const t = lastBirthdayStart(Date.now()).getTime();
+  return Date.now() >= t && Date.now() - t <= REPLAY_WINDOW_MS;
+}
+
+/* кнопка ручного повтора — только в «окне недели» после праздника */
+(function showReplayButton() {
+  const btn = $('replayBtn');
+  if (!btn || !shouldReplayLastMinute()) return;
+  btn.style.display = '';
+  btn.addEventListener('click', () => startLastMinuteReplay({ force: true }));
+})();
+
+/* не навязываем повтор чаще двух раз за день (кроме ручного запуска) */
+function replayAllowedToday(force) {
+  if (force) return true;
+  try {
+    const today = new Date().toDateString();
+    const marks = JSON.parse(sessionStorage.getItem(REPLAY_KEY) || '[]');
+    const todays = marks.filter((d) => d === today);
+    if (todays.length >= 2) return false;
+    marks.push(today);
+    sessionStorage.setItem(REPLAY_KEY, JSON.stringify(marks.slice(-8)));
+    return true;
+  } catch (e) {
+    return true; /* приватный режим — просто показываем */
+  }
+}
+
+function startLastMinuteReplay(opts = {}) {
+  if (replayRunning || partyTriggered) return false;
+  const force = opts.force === true;
+  if (!replayAllowedToday(force)) return false;
+
+  replayRunning = true;
+  fakeNowOffset = -(60 * 1000 + 59 * 1000); /* стартуем с «осталось 59с» */
+  scene.classList.add('replay-on');
+  const btn = $('replayBtn');
+  if (btn) btn.style.display = 'none';
+  if (subtitle) subtitle.textContent = '⏳ Последняя минутка перед праздником!';
+
+  let doneAtFired = false;
+  const realT0 = Date.now();
+
+  const tick = () => {
+    const elapsed = ((Date.now() - realT0) / 1000) * REPLAY_SPEED; /* виток ~24с */
+    const remaining = Math.max(0, 60 - elapsed);                   /* виртуальные секунды до нуля */
+    fakeNowOffset = -(60 - remaining) * 1000;
+    updateCountdown();
+
+    if (remaining <= 0) {
+      if (!doneAtFired) {
+        doneAtFired = true;
+        onReplayFinished();
+      }
+      return; /* цикл останавливает onReplayFinished */
+    }
+    replayRafId = requestAnimationFrame(tick);
+  };
+  replayRafId = requestAnimationFrame(tick);
+  return true;
+}
+
+function stopLastMinuteReplay() {
+  if (replayRafId) { cancelAnimationFrame(replayRafId); replayRafId = null; }
+  replayRunning = false;
+  fakeNowOffset = 0;
+  resetNightDawn();
+  scene.classList.remove('replay-on', 'replay-done');
+  const banner = $('replayBanner');
+  if (banner) banner.remove();
+  const btn = $('replayBtn');
+  if (shouldReplayLastMinute() && btn) btn.style.display = '';
+  updateCountdown();
+}
+
+/* финал повтора: вспышка, конфетти-салют, баннер-открытка */
+function onReplayFinished() {
+  if (replayRafId) { cancelAnimationFrame(replayRafId); replayRafId = null; }
+  setDigit('days', '000'); setDigit('hours', '00');
+  setDigit('minutes', '00'); setDigit('seconds', '00');
+  scene.classList.add('replay-done');
+
+  launchTransitionConfetti();
+  if (subtitle) subtitle.textContent = 'С ДНЁМ РОЖДЕНИЯ!';
+
+  const banner = document.createElement('div');
+  banner.id = 'replayBanner';
+  banner.className = 'replay-banner';
+  banner.setAttribute('role', 'status');
+  banner.innerHTML = `
+    <div class="replay-banner-inner">
+      <span class="rb-spark" aria-hidden="true"></span>
+      <b>ВОТ ОНА — ТА САМАЯ МИНУТА!</b>
+      <p>Праздник наступил ровно неделю назад (или меньше) —
+         мы ещё раз прожили последние 60 секунд. С Днём Рождения!</p>
+      <div class="replay-banner-actions">
+        <button class="btn rb-btn" id="replayAgain">Ещё разок</button>
+        <button class="btn rb-btn rb-btn-ghost" id="replayClose">Ок, спасибо</button>
+      </div>
+    </div>`;
+  scene.appendChild(banner);
+  banner.querySelector('#replayAgain').addEventListener('click', () => {
+    banner.remove();
+    scene.classList.remove('replay-done');
+    startLastMinuteReplay({ force: true });
+  });
+  banner.querySelector('#replayClose').addEventListener('click', () => stopLastMinuteReplay());
 }
 
 /* ========= ПЕРЕХОД НА СТРАНИЦУ ПОЗДРАВЛЕНИЯ ========= */
@@ -389,7 +520,7 @@ function triggerParty() {
   }
   if (progressBar) progressBar.style.width = '100%';
   if (percent) percent.textContent = '100%';
-  if (subtitle) subtitle.textContent = '✨ ПРАЗДНИК НАЧАЛСЯ! ✨';
+  if (subtitle) subtitle.textContent = 'ПРАЗДНИК НАЧАЛСЯ!';
 
   /* золотая вспышка + прощальная надпись поверх карточки */
   const flash = document.querySelector('.flash-overlay');
@@ -598,9 +729,8 @@ function applyTheme(theme, immediate = false) {
   }
 
   currentTheme = theme;
-  /* ночные «гости»: луна и созвездие плавно выходят, днём — прячутся */
+  /* ночные «гости» (созвездие, фонарики) плавно выходят, днём — прячутся */
   scene.classList.toggle('night-sky-on', theme === 'night');
-  updateMoonPhase(); /* фаза актуальна при каждой смене темы (и при старте) */
   if (theme === 'night') {
     /* зашли в ночь на L4+ — фонарики могут проснуться вместе с темнотой */
     spawnLanterns();
@@ -641,10 +771,15 @@ applyTheme(getTimeTheme(), true);
 /* если вернулись со страницы праздника — не перепрыгиваем сразу обратно */
 if (location.search.includes('returning=1')) {
   partyTriggered = true;
-  subtitle.textContent = 'Праздник уже здесь — но можно подождать ещё годик! 🎈';
+  subtitle.textContent = 'Праздник уже здесь — но можно подождать ещё годик!';
 }
 
 updateCountdown();
+
+/* стартуем «последнюю минутку» автоматически в течение 7 дней после праздника */
+if (shouldReplayLastMinute()) {
+  window.setTimeout(() => startLastMinuteReplay(), 1200);
+}
 
 /* отсчёт раз в секунду; с ?debug=N — N раз в секунду (ускорение таймера) */
 setInterval(updateCountdown, Math.max(40, Math.round(1000 / DEBUG_SPEED)));
@@ -741,8 +876,8 @@ setInterval(syncBirds, THEME_CHECK_INTERVAL);
     return 0.0035 * Math.pow(1.7, proximityLevel);
   }
 
-  /* НОЧЬ: лунная пыль — медленные серебристые искры, дрейфующие вниз.
-     Днём слой полностью отключается (экономим кадры и не спорим с солнцем). */
+  /* НОЧЬ: серебряная пыль — медленные искры, дрейфующие вниз.
+     Днём слой полностью отключается (экономим кадры). */
   const dust = [];
   function spawnDust(night) {
     if (!night) return;
@@ -805,7 +940,7 @@ setInterval(syncBirds, THEME_CHECK_INTERVAL);
     }
     ctx.globalAlpha = 1;
 
-    /* --- лунная пыль: рисуем только ночью; при смене темы на день — чистим --- */
+    /* --- серебряная пыль: рисуем только ночью; при смене темы на день — чистим --- */
     const isNight = night;
     if (!isNight && dust.length) dust.length = 0;
     spawnDust(isNight);
@@ -829,75 +964,18 @@ setInterval(syncBirds, THEME_CHECK_INTERVAL);
   requestAnimationFrame(frame);
 })();
 
-/* ======= ЛУННАЯ ПЫЛЬ — отдельный canvas #moonDust (рисуется только ночью) ======= */
-const moonDustCanvas = $('moonDust');
-(function moonDustLayer() {
-  const cv = moonDustCanvas;
-  if (!cv || !cv.getContext || REDUCED_MOTION) return;
-  const ctx = cv.getContext('2d');
-  let W = 0, H = 0;
-  function fit() {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    cv.width = W * dpr;
-    cv.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  fit();
-  window.addEventListener('resize', fit);
-
-  const motes = [];
-  function spawn() {
-    if (motes.length > 30 || Math.random() > 0.4) return;
-    motes.push({
-      x: Math.random() * W,
-      y: -6,
-      vy: 0.2 + Math.random() * 0.5,
-      swayA: 12 + Math.random() * 28,
-      swayF: 0.007 + Math.random() * 0.013,
-      seed: Math.random() * 100,
-      r: 0.8 + Math.random() * 1.5,
-      life: 0
-    });
-  }
-  function frame() {
-    ctx.clearRect(0, 0, W, H);
-    /* слой живёт только ночью; при переключении на день — очищаем канвас */
-    if (scene.classList.contains('theme-night')) {
-      spawn();
-      for (let i = motes.length - 1; i >= 0; i--) {
-        const d = motes[i];
-        d.life++;
-        d.y += d.vy;
-        const x = d.x + Math.sin(d.life * d.swayF + d.seed) * d.swayA;
-        const fade = Math.min(1, d.life / 40) * Math.max(0, 1 - d.y / H);
-        ctx.globalAlpha = fade * 0.55;
-        ctx.fillStyle = 'rgba(207,220,255,1)';
-        ctx.beginPath();
-        ctx.arc(x, d.y, d.r, 0, Math.PI * 2);
-        ctx.fill();
-        if (d.y > H || fade <= 0) motes.splice(i, 1);
-      }
-      ctx.globalAlpha = 1;
-    } else if (motes.length) {
-      motes.length = 0; /* днём — пусто */
-    }
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-})();
 
 /* ======= экспорт небольшого API для интеграционных DOM-тестов ======= */
 window.birthdayCountdown = {
   getProximityLevel,
-  updateMoonPhase,
   updateProximity,
   applyTheme,
   animateNightDawn,
   resetNightDawn,
   spawnLanterns,
   isLanternStarted: () => lanternStarted,
-  MOON_EPOCH,
-  SYNODIC_MONTH
+  shouldReplayLastMinute,
+  startLastMinuteReplay,
+  stopLastMinuteReplay,
+  isReplayRunning: () => replayRunning
 };

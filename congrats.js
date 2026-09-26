@@ -131,8 +131,6 @@ function spawnConfetti(n) {
   }
 }
 spawnConfetti(90);
-/* волна салюта, когда буквы заголовка «приземляются» */
-setTimeout(() => burstConfetti(50), 1600);
 
 function confFrame(t) {
   cctx.clearRect(0, 0, confCanvas.width, confCanvas.height);
@@ -388,7 +386,7 @@ function relightCandles() {
 cake.addEventListener('click', blowCandles);
 $('relightBtn').addEventListener('click', relightCandles);
 
-/* ---------- супер-сюрприз: многослойная «матрёшка» подарков ---------- */
+/* ---------- супер-сюрприз: коробка с подарком ---------- */
 const SURPRISE_MESSAGES = [
   ['🦄', 'Ты — легендарный герой этого дня!'],
   ['🌈', 'Пусть жизнь будет яркой, как радуга!'],
@@ -397,178 +395,40 @@ const SURPRISE_MESSAGES = [
   ['🍭', 'Сладости сегодня — без ограничений!']
 ];
 
-/* промежуточные слои — каждый следующий чуть меньше предыдущего */
-const NESTED_GIFTS = [
-  { emoji: '🧸', tease: 'Ой! Это был только первый слой… держи медвежонка и открывай дальше!' },
-  { emoji: '🍬', tease: 'Почти! Внутри спряталась конфетка… ещё один рывок крышки!' },
-  { emoji: '✨', tease: 'Уже чувствуешь жар? Коробочка светится изнутри…' }
-];
-
-/* финальный залп — усиленный салют прямо из центра экрана */
-function grandSalvo() {
-  try {
-    /* залп ракет из нижней кромки по всей ширине */
-    fireworksSalvo(14, 120);
-    /* несколько мгновенных взрывов в центре — эффект «баха!» */
-    for (let i = 0; i < 6; i++) {
-      explode(canvas.width / 2 + rand(-canvas.width * .3, canvas.width * .3),
-              canvas.height * rand(.2, .5), pick(PARTY_COLORS));
-    }
-    burstConfetti(260);
-  } catch (e) { /* не критично */ }
-}
-
-/* замирание экрана перед главным открытием (build-up → drop) */
-function screenDrop(cb) {
-  const scene = $('partyScene');
-  if (!scene || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
-    setTimeout(cb, 100);
-    return;
-  }
-  scene.classList.add('drop-charge');
-  setTimeout(() => {
-    scene.classList.remove('drop-charge');
-    scene.classList.add('drop-shake');
-    setTimeout(cb, 260);
-  }, 900);
-}
-
 $('surpriseBtn').addEventListener('click', () => {
-  /* счётчик повторных нажатий — чем дальше, тем эпичнее */
-  let revealCount = parseInt(sessionStorage.getItem('surpriseReveals') || '0', 10);
-  const totalLayers = NESTED_GIFTS.length + 1;
-
   const overlay = document.createElement('div');
   overlay.className = 'surprise-overlay';
-  overlay.setAttribute('aria-live', 'polite');
   overlay.innerHTML = `
-    <div class="surprise-progress" aria-hidden="true">
-      ${Array.from({ length: totalLayers }, () => '<i></i>').join('')}
-    </div>
     <div class="surprise-box" role="button" tabindex="0" aria-label="Открыть подарок">
-      <div class="gift-stack">
-        <img class="gift-lid" src="assets/gift-box.png" alt="" draggable="false" aria-hidden="true" />
-        <img class="gift-base" src="assets/gift-box.png" alt="" draggable="false" />
-      </div>
-      <div class="gift-glow" aria-hidden="true"></div>
+      <img class="gift-img" src="assets/gift-box.png" alt="" draggable="false" />
       <div class="surprise-caption">нажми на коробочку...</div>
-      <div class="surprise-burst" aria-hidden="true"></div>
       <div class="surprise-msg"></div>
     </div>`;
   document.body.appendChild(overlay);
 
   const box = overlay.querySelector('.surprise-box');
   const msg = overlay.querySelector('.surprise-msg');
-  const caption = overlay.querySelector('.surprise-caption');
-  const burst = overlay.querySelector('.surprise-burst');
-  const giftStack = overlay.querySelector('.gift-stack');
-  const pips = overlay.querySelectorAll('.surprise-progress i');
-  let layer = 0;
-  let animating = false;
-
-  function markPip() {
-    if (pips[layer]) pips[layer].classList.add('lit');
-    layer++;
-  }
-
-  function sparkleBurst(n = 18) {
-    burst.innerHTML = '';
-    const frag = document.createDocumentFragment();
-    for (let i = 0; i < n; i++) {
-      const s = document.createElement('span');
-      s.textContent = pick(['✦', '✧', '★', '•']);
-      const a = rand(0, Math.PI * 2);
-      const d = rand(46, 130);
-      s.style.setProperty('--dx', `${(Math.cos(a) * d).toFixed(0)}px`);
-      s.style.setProperty('--dy', `${(Math.sin(a) * d - 30).toFixed(0)}px`);
-      s.style.color = pick(PARTY_COLORS);
-      s.style.animationDelay = `${rand(0, .18).toFixed(2)}s`;
-      frag.appendChild(s);
-    }
-    burst.appendChild(frag);
-    setTimeout(() => { burst.innerHTML = ''; }, 1100);
-  }
-
-  function resetBox(scaleClass) {
-    box.classList.remove('open', 'teasing', 'final-open');
-    if (scaleClass) box.classList.add(scaleClass);
-    msg.classList.remove('show');
-    msg.innerHTML = '';
-  }
-
-  function showTease(emoji, text, nextLabel) {
-    msg.innerHTML = `<div><span class="big-emoji">${emoji}</span>${text}<br/>
-      <button class="btn surprise-next">${nextLabel}</button></div>`;
-    msg.classList.add('show');
-    msg.querySelector('.surprise-next').addEventListener('click', (e) => {
-      e.stopPropagation();
-      /* следующая коробочка «выпрыгивает» из-под крышки */
-      resetBox(box.className.includes('small') ? 'small' : '');
-      caption.textContent = '...и снова дёрни крышку!';
-      caption.style.display = '';
-      box.classList.add('teasing');
-      setTimeout(() => box.classList.remove('teasing'), 900);
-    });
-  }
 
   const open = () => {
-    if (animating || box.classList.contains('open')) return;
-    animating = true;
-    box.classList.add('open');           /* CSS-анимация прыжка крышки */
-    caption.style.display = 'none';
-    sparkleBurst(layer === 0 ? 18 : 26);
-
-    const isFinal = layer >= NESTED_GIFTS.length;
-
-    if (isFinal) {
-      /* ГРАНД-ФИНАЛ: экран «падает» вниз и раскрывает главный подарок */
-      box.classList.add('final-open');
-      revealCount++;
-      try { sessionStorage.setItem('surpriseReveals', String(revealCount)); } catch (e) {}
-      markPip();
-      screenDrop(() => {
-        grandSalvo();
-        const [emoji, text] = pick(SURPRISE_MESSAGES);
-        const bonus = revealCount > 1
-          ? `<div class="surprise-bonus">Ты открыл этот сюрприз уже ${revealCount}-й раз — ты настоящий чемпион праздника! 🏆</div>`
-          : '';
-        msg.innerHTML = `<div class="grand-reveal">
-            <div class="grand-rays" aria-hidden="true"></div>
-            <span class="big-emoji">${emoji}</span>
-            <div class="grand-title">ГЛАВНЫЙ ПОДАРОК</div>
-            <div class="grand-text">${text}</div>${bonus}
-            <button class="btn surprise-close">ЗАКРЫТЬ</button>
-          </div>`;
-        msg.classList.add('show');
-        msg.querySelector('.surprise-close').addEventListener('click', (e) => {
-          e.stopPropagation();
-          closeOverlay();
-        });
-        animating = false;
+    if (box.classList.contains('open')) return;
+    box.classList.add('open');
+    overlay.querySelector('.surprise-caption').style.display = 'none';
+    const [emoji, text] = pick(SURPRISE_MESSAGES);
+    fireworksSalvo(10, 150);
+    burstConfetti(150);
+    setTimeout(() => {
+      msg.innerHTML = `<div><span class="big-emoji">${emoji}</span>${text}<br/>
+        <button class="btn surprise-close">ЗАКРЫТЬ</button></div>`;
+      msg.classList.add('show');
+      msg.querySelector('.surprise-close').addEventListener('click', (e) => {
+        e.stopPropagation();
+        overlay.remove();
       });
-    } else {
-      const gift = NESTED_GIFTS[layer];
-      markPip();
-      fireworksSalvo(3 + layer * 2, 220);
-      burstConfetti(40 + layer * 30);
-      setTimeout(() => {
-        showTease(gift.emoji, gift.tease,
-          layer === NESTED_GIFTS.length - 1 ? '🎁 ПОСЛЕДНИЙ СЛОЙ!' : 'Открыть дальше →');
-        animating = false;
-      }, 520);
-    }
+    }, 450);
   };
 
-  function closeOverlay() {
-    overlay.classList.add('closing');
-    setTimeout(() => overlay.remove(), 350);
-  }
-
   box.addEventListener('click', open);
-  box.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
-  });
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeOverlay(); });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 });
 
 /* ---------- возврат на страницу ожидания ---------- */

@@ -199,7 +199,7 @@ body.final-mode .progress-bar {
 /* пиксельная вывеска над заголовком */
 .card-sign {
   display: block;
-  width: min(500px, 92%);
+  width: min(430px, 82%);
   height: auto;
   margin: 0 auto 16px;
   image-rendering: pixelated;
@@ -490,169 +490,28 @@ body.final-mode .progress-bar {
 @keyframes fade-in { from { opacity: 0; } }
 .surprise-box {
   position: relative;
-  width: 190px;
-  height: 170px;
+  width: 170px;
+  height: 150px;
   cursor: pointer;
   animation: gift-idle 1.8s ease-in-out infinite;
-  transition: transform .5s cubic-bezier(.2, 1.5, .4, 1);
 }
 @keyframes gift-idle {
   0%, 100% { transform: rotate(-3deg) translateY(0); }
   50% { transform: rotate(3deg) translateY(-10px); }
 }
-/* промежуточные слои становятся меньше — «матрёшка» */
-.surprise-box.small { transform: scale(.72); }
-
-.gift-stack { position: relative; width: 160px; margin: 0 auto; }
-.gift-base, .gift-lid {
+.gift-img {
   display: block;
   width: 160px;
+  margin: 0 auto;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-}
-.gift-base {
-  clip-path: inset(40% 0 0 0);          /* только корпус коробки */
   filter: drop-shadow(0 10px 0 rgba(0, 0, 0, .3));
+  transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), opacity .4s ease;
 }
-.gift-lid {
-  position: absolute;
-  left: 0;
-  top: 0;
-  clip-path: inset(0 0 60% 0);          /* бант + крышка (до ~78px из 192) */
-  transition: transform .5s cubic-bezier(.3, 1.8, .45, 1), opacity .5s ease;
-  transform-origin: 80% 100%;
+.surprise-box.open .gift-img {
+  transform: translateY(-26px) scale(1.12) rotate(-6deg);
+  opacity: .25;
 }
-.surprise-box.open .gift-lid {
-  transform: translateY(-58px) rotate(24deg) scale(1.06);
-  opacity: .15;
-}
-.surprise-box.final-open .gift-lid {
-  transform: translateY(-120px) rotate(64deg) scale(1.15);
-  opacity: 0;
-}
-.surprise-box.teasing .gift-stack { animation: gift-hop .85s cubic-bezier(.2, 1.6, .4, 1); }
-@keyframes gift-hop {
-  0% { transform: translateY(46px) scale(.4); opacity: 0; }
-  55% { transform: translateY(-10px) scale(1.08); opacity: 1; }
-  100% { transform: translateY(0) scale(1); }
-}
-
-/* свечение из-под крышки — нарастает к финалу */
-.gift-glow {
-  position: absolute;
-  left: 50%;
-  top: 34%;
-  width: 130px;
-  height: 60px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 232, 150, .95), rgba(255, 180, 80, .35) 55%, transparent);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .4s ease;
-}
-.surprise-box.open .gift-glow { opacity: 1; animation: glow-pulse 1s ease-in-out infinite; }
-@keyframes glow-pulse { 50% { transform: translateX(-50%) scale(1.25); opacity: .75; } }
-
-/* искры из-под крышки при каждом открытии */
-.surprise-burst {
-  position: absolute;
-  left: 50%;
-  top: 30%;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-.surprise-burst span {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 15px;
-  animation: spark-fly .95s ease-out forwards;
-}
-@keyframes spark-fly {
-  from { opacity: 1; transform: translate(0, 0) scale(1); }
-  to {
-    opacity: 0;
-    transform: translate(var(--dx, 40px), var(--dy, -70px)) scale(.3);
-  }
-}
-
-/* индикатор слоёв сюрприза */
-.surprise-progress {
-  position: absolute;
-  top: max(18px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  z-index: 2;
-}
-.surprise-progress i {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 3px solid #ffd98a;
-  background: transparent;
-  transition: background .4s ease, box-shadow .4s ease, transform .4s cubic-bezier(.2, 1.7, .4, 1);
-}
-.surprise-progress i.lit {
-  background: #ff6db3;
-  box-shadow: 0 0 12px #ff6db3, 0 0 24px rgba(255, 109, 179, .6);
-  transform: scale(1.25);
-}
-
-/* гранд-финал: экран «заряжается» и «встряхивается» */
-.party-scene.drop-charge { animation: drop-charge .9s ease-in forwards; }
-@keyframes drop-charge {
-  0% { filter: brightness(1); transform: scale(1); }
-  70% { filter: brightness(1.35) saturate(1.4); transform: scale(.985); }
-  100% { filter: brightness(1.7) saturate(1.6); transform: scale(.97); }
-}
-.party-scene.drop-shake { animation: drop-shake .26s linear; }
-@keyframes drop-shake {
-  0%, 100% { transform: translate(0, 0); }
-  20% { transform: translate(-7px, 5px); }
-  40% { transform: translate(6px, -6px); }
-  60% { transform: translate(-5px, -3px); }
-  80% { transform: translate(4px, 4px); }
-}
-
-/* главное раскрытие */
-.grand-reveal { position: relative; padding: 10px 16px; }
-.grand-title {
-  font-size: clamp(14px, 3vw, 24px);
-  color: #ffd98a;
-  letter-spacing: 3px;
-  text-shadow: 0 0 14px rgba(255, 217, 138, .9), 3px 3px 0 #b3387c;
-  animation: grand-title-pop .7s cubic-bezier(.2, 1.8, .4, 1) both;
-}
-@keyframes grand-title-pop { from { transform: scale(.2); opacity: 0; } }
-.grand-text { animation: grand-rise .6s .15s ease both; }
-@keyframes grand-rise { from { transform: translateY(24px); opacity: 0; } }
-.surprise-bonus {
-  margin-top: 10px;
-  font-size: clamp(10px, 2vw, 15px);
-  color: #5ee8b7;
-  animation: grand-rise .6s .3s ease both;
-}
-.grand-rays {
-  position: absolute;
-  left: 50%;
-  top: 42%;
-  width: 640px;
-  height: 640px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  background: repeating-conic-gradient(rgba(255, 226, 140, .16) 0deg 9deg, transparent 9deg 24deg);
-  border-radius: 50%;
-  animation: rays-spin 9s linear infinite, rays-in .8s ease both;
-  mask-image: radial-gradient(closest-side, black 30%, transparent 78%);
-  -webkit-mask-image: radial-gradient(closest-side, black 30%, transparent 78%);
-}
-@keyframes rays-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-@keyframes rays-in { from { opacity: 0; } }
-
 .surprise-caption {
   position: absolute;
   top: calc(100% + 26px);
@@ -680,12 +539,6 @@ body.final-mode .progress-bar {
   transition: transform .6s cubic-bezier(.2, 1.7, .4, 1), opacity .4s ease;
 }
 .surprise-msg.show { opacity: 1; transform: scale(1); pointer-events: auto; }
-/* закрытие оверлея — мягкий «выдох» */
-.surprise-overlay.closing { animation: overlay-out .35s ease both; }
-@keyframes overlay-out { to { opacity: 0; transform: scale(.92); } }
-.surprise-next { margin-top: 18px; background: linear-gradient(180deg, #a86fe8, #7b3fd1); box-shadow: 0 6px 0 #4d2388, 0 10px 24px rgba(0, 0, 0, .35); }
-.surprise-next:hover { box-shadow: 0 9px 0 #4d2388, 0 16px 30px rgba(0, 0, 0, .4); }
-.surprise-next:active { box-shadow: 0 2px 0 #4d2388; }
 .surprise-msg .big-emoji { font-size: clamp(44px, 9vw, 84px); display: block; animation: emoji-spin 2.4s ease-in-out infinite; }
 @keyframes emoji-spin { 0%, 100% { transform: rotate(-12deg) scale(1); } 50% { transform: rotate(12deg) scale(1.2); } }
 .surprise-close { margin-top: 22px; }
@@ -717,15 +570,10 @@ body.final-mode .progress-bar {
   .ltr, .bounce-badge, .btn-surprise, .surprise-box, .blow-hint,
   .smoke, .party-card, .balloon, .confetti, .bang,
   .garland-top, .bunting, .spark, .card-sign, .btn::after, .background-party,
-  .party-title .ltr, footer .beat,
-  .gift-stack, .gift-glow, .surprise-burst span, .grand-rays,
-  .grand-title, .grand-text, .surprise-bonus,
-  .party-scene.drop-charge, .party-scene.drop-shake { animation: none !important; }
+  .party-title .ltr, footer .beat { animation: none !important; }
   .ltr { opacity: 1; transform: none; }
   .card-sign { transform: rotate(-2deg); }
   .fireworks { display: none; }
-  .party-scene.drop-charge { filter: none; transform: none; }
-  .gift-lid { transition: none; }
 }
 
 /* ======= ранний доступ к празднику (с index.html) ======= */

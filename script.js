@@ -96,8 +96,11 @@ function updateCountdown() {
     subtitle.textContent = `Праздник наступит совсем скоро`;
   }
 
-  /* таймер дошёл до нуля — запускаем party-переход */
-  if (diff <= 0) triggerParty();
+  /* таймер дошёл до нуля — запускаем party-переход.
+     ВАЖНО: сравнение в целых секундах (totalSeconds), а не в миллисекундах,
+     иначе из-за округления книзу diff остаётся ~999мс ещё целый такт,
+     отсчёт «залипает» на 00:00 и переход никогда не срабатывает. */
+  if (totalSeconds <= 0) triggerParty();
 }
 
 /* ========= ФИНАЛЬНЫЙ ОТСЧЁТ (последние 10 секунд) ========= */
@@ -145,7 +148,7 @@ function triggerParty() {
   /* через мгновение вспышки — летим на страницу праздника
      (собираем URL так, чтобы работало и в корне, и в подпадке GitHub Pages) */
   window.setTimeout(() => {
-    location.assign(getCongratsUrl());
+    location.assign(getCongratsUrl() + '?arrived=1');
   }, 1500);
 }
 
@@ -160,7 +163,7 @@ function getCongratsUrl() {
     let base = location.pathname;
     if (/\/$/.test(base)) base += 'index.html';
     base = base.replace(/[^/]*$/, '');
-    return base + CONGRATS_PAGE + '?arrived=1';
+    return base + CONGRATS_PAGE;
   }
 }
 

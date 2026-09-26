@@ -1531,7 +1531,6 @@ body.final-mode .digit-roll em { animation-duration: .3s; }
   .time-box span { font-size: clamp(20px, 7.2vw, 30px); }
   .time-box small { font-size: clamp(6px, 1.9vw, 8px); letter-spacing: .5px; }
   footer { font-size: clamp(6px, 1.8vw, 8px); padding: 0 12px; }
-  .early-access a { font-size: clamp(8px, 2.4vw, 11px); }
   .replay-banner { width: min(94vw, 460px); padding: 18px 14px; }
   .replay-banner p { font-size: clamp(7px, 2.3vw, 10px); line-height: 1.9; }
   .rb-btn { font-size: clamp(8px, 2.3vw, 11px); padding: 12px 14px; }

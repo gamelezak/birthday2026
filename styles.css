@@ -1362,12 +1362,6 @@ body.final-mode .digit-roll em { animation-duration: .3s; }
 .star.big { animation-duration: calc(var(--d) * .7); }
 
 /* --- птицы: планирование — крылья складываются дольше, чем машут --- */
-.bird-sprite { animation-timing-function: steps(16, end); }
-@keyframes bird-wings {
-  0%   { background-position: 0 0; }
-  62%  { background-position: -1400px 0; } /* активное махание первой половиной кадров */
-  100% { background-position: -2240px 0; }
-}
 
 /* --- свечение свечи под карточкой: неровное, «живое» (шаги + смещение) --- */
 @keyframes candle-pulse {

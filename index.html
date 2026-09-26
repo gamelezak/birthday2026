@@ -19,11 +19,22 @@
     </div>
 
     <div class="sky-overlay" aria-hidden="true"></div>
+    <!-- Луна и солнце уже нарисованы на фоновых картинках (birthday-bg*.png):
+         здесь только «живые» ореолы, привязанные к их местоположению. -->
+    <div class="sun-glow" id="sunGlow" aria-hidden="true"><i class="sg-core"></i><i class="sg-flare f1"></i><i class="sg-flare f2"></i><i class="sg-flare f3"></i></div>
+    <div class="moon-glow" id="moonGlow" aria-hidden="true"><i class="mg-ring"></i><i class="mg-ray r1"></i><i class="mg-ray r2"></i><i class="mg-ray r3"></i></div>
+    <div class="clouds" aria-hidden="true">
+      <i class="cloud cloud-1"></i>
+      <i class="cloud cloud-2"></i>
+      <i class="cloud cloud-3"></i>
+    </div>
     <div class="stars" id="stars" aria-hidden="true"></div>
     <canvas class="shooting-stars" id="shootingStars" aria-hidden="true"></canvas>
     <div class="candle-glow" aria-hidden="true"></div>
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="constellation" id="constellation" aria-hidden="true"><svg viewBox="0 0 220 150" preserveAspectRatio="xMidYMid meet"><polyline points="14,118 52,78 96,96 138,44 176,66 206,26"/><circle cx="14" cy="118" r="3"/><circle cx="52" cy="78" r="4"/><circle cx="96" cy="96" r="3"/><circle cx="138" cy="44" r="4.5"/><circle cx="176" cy="66" r="3"/><circle cx="206" cy="26" r="4"/></svg></div>
     <div class="fireflies" id="fireflies" aria-hidden="true"></div>
+    <div class="lanterns" id="lanterns" aria-hidden="true"></div>
     <div class="dust-motes" id="dustMotes" aria-hidden="true"></div>
     <div class="balloon-rig" id="balloonRig" aria-hidden="true"></div>
     <div class="bunting-row" id="buntingRow" aria-hidden="true"></div>

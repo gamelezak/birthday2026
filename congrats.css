@@ -628,10 +628,18 @@ body.final-mode .progress-bar {
   opacity: 0;
 }
 .surprise-box.teasing .gift-stack { animation: gift-hop .85s cubic-bezier(.2, 1.6, .4, 1); }
+/* «матрёшка»: следующий слой появляется ПОВЕРХ подарка — строго по центру экрана
+   и на слой выше самой коробки (fixed-позиционирование + z-index внутри оверлея) */
+.surprise-box.teasing { z-index: 3; }
+.surprise-box.teasing .gift-stack {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+}
 @keyframes gift-hop {
-  0% { transform: translateY(46px) scale(.4); opacity: 0; }
-  55% { transform: translateY(-10px) scale(1.08); opacity: 1; }
-  100% { transform: translateY(0) scale(1); }
+  0%   { transform: translate(-50%, -50%) scale(.4); opacity: 0; }
+  55%  { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
 /* свечение из-под крышки — нарастает к финалу */

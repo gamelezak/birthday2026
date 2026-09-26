@@ -83,13 +83,13 @@ requestAnimationFrame(skyFrame);
 
 /* ---------- печатающееся пожелание ---------- */
 const WISHES = [
-  'Сегодня ТОТ САМЫЙ день! Пусть сбывается всё, во что ты веришь, — и даже то, во что уже не верилось…',
-  'Ты ждал(а) этот момент целый год — и вот он: полный привод чудес, гарантия не распространяется, зато действует всегда!',
-  'Пусть этот год будет как лучший плейлист: любимые люди на репите, тревоги в удалённых, а счастье — без ограничений!',
-  'Желаю тебе года, где утро начинается с любимого кофе, вечера — с тёплым пледом и смешными сериалами, а рядом всегда будут те, кто громче всех смеётся над твоими шутками…',
-  'С днём рождения! Желаю наглости бронировать билеты, не глядя на цены; говорить «да» приглашениям и «нет» тому, что высасывает энергию…',
-  'Пусть в этом году появится хобби, от которого невозможно оторваться, проект, которым будешь хвастаться, и день, который вспоминать будете все друзья…',
-  'Здоровья — чтобы планы совпадали с силами, денег — чтобы мечты стоили меньше, чем возможности, и счастья — такого, которое не нужно объяснять!'
+  'Сегодня тот самый день. Пусть сбывается всё, во что ты веришь, и даже то, во что уже не верилось...',
+  'Ты ждала этот момент целый год, и вот он: полный привод чудес, гарантия не распространяется, зато действует всегда!',
+  'Пусть этот год будет как любимый плейлист: близкие на репите, тревоги в удалённых, счастье без ограничений!',
+  'Желаю утра с любимым кофе, вечеров с тёплым пледом и смешными сериалами, а рядом тех, кто смеётся над твоими шутками громче всех.',
+  'С днём рождения! Желаю смелости бронировать билеты, не глядя на цену; говорить «да» приглашениям и «нет» тому, что забирает энергию.',
+  'Пусть в этом году найдётся хобби, от которого невозможно оторваться, проект, которым будешь гордиться, и день, который пересказывают все друзья.',
+  'Здоровья, чтобы планы совпадали с силами. Денег, чтобы мечты стоили дешевле возможностей. Счастья такого, которое не нужно объяснять!'
 ];
 
 function typeWish() {
@@ -411,7 +411,7 @@ const wishScroll = $('wishScroll');
 const reduceMotion = window.matchMedia &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const HINT_DEFAULT = 'Кликни по торту — задумай желание и задуй свечи';
+const HINT_DEFAULT = 'Торт твой. Загадай самое заветное желание и задуй свечи';
 const candleSpots = Array.from(document.querySelectorAll('.smoke-spot'));
 let prankUsed = false;   /* розыгрыш «свеча снова ожила» — ровно один раз */
 
@@ -471,7 +471,7 @@ function blowCandles() {
   cake.classList.remove('joy-jiggle');
   /* гасим свечи по очереди — слева направо, с задержкой */
   candleSpots.forEach((spot, i) => setTimeout(() => extinguish(spot), i * 170));
-  blowHint.textContent = 'Желание загадано!';
+  blowHint.textContent = 'Запечатано и принято в работу!';
   blowHint.classList.add('hint-flash');
   setTimeout(() => {
     wishScroll.classList.remove('hidden');
@@ -495,7 +495,7 @@ function maybePrankRelight() {
   flame.style.setProperty('--fd', '0s');
   spot.appendChild(flame);
   cakeWrap.classList.remove('no-glow');
-  blowHint.textContent = 'Ой, она снова горит! Попробуй ещё раз';
+  blowHint.textContent = 'Странно... свеча ожила! Давай ещё раз, теперь наверняка';
   blowHint.classList.add('hint-flash');
   setTimeout(() => {
     flame.classList.add('out');
@@ -527,8 +527,8 @@ $('relightBtn').addEventListener('click', relightCandles);
 
 /* автоподсказки: ротация текстов + мигание при бездействии */
 const HINT_ROTATION = [
-  'Кликни по торту — задумай желание и задуй свечи',
-  'Можно и свайпом! Резко проведи пальцем по торту — задует все свечи разом',
+  'Кликни по торту, загадай желание и задуй свечи',
+  'Можно и свайпом: резко проведи пальцем по торту, задует все свечи разом.',
   'Говорят, желания под салют сбываются быстрее... но сначала их надо загадать!'
 ];
 let hintIdx = 0;
@@ -555,21 +555,21 @@ armIdleNudge();
 /* ---------- супер-сюрприз: многослойная «матрёшка» подарков ---------- */
 /* финальные послания гранд-финала (выбирается случайное) */
 const SURPRISE_MESSAGES = [
-  ['assets/gift-trophy.png', 'Кубок чемпиона праздника — твой! Ты дошёл(ла) до самого сердца сюрприза. Знай: где-то прямо сейчас кто-то очень рад, что ты есть. С Днём Рождения!'],
-  ['assets/gift-trophy.png', 'Это не просто подарок — это орден «За пройденные ожидания и выдержанные отсчёты». Носи с гордостью, ты заслужил(а)!'],
-  ['assets/gift-trophy.png', 'Внутри была пустая коробочка? Нет! Внутри было вот это: ты — лучший человек этого года. И точка.'],
-  ['assets/gift-trophy.png', 'Говорят, главный подарок — это то, что ждали дольше всего. Ты ждал(а) целый год. Так что держи кубо... то есть признание!'],
-  ['assets/gift-trophy.png', 'Финальный лут легендарной редкости: +100 к счастью, +50 к удаче, пассивка «желания сбываются». С Днём Рождения!']
+  ['assets/gift-trophy.png', 'Кубок чемпиона праздника твой! Ты добралась до самого сердца сюрприза. И знай: прямо сейчас кто-то очень рад, что ты есть. С Днём Рождения!'],
+  ['assets/gift-trophy.png', 'Это не просто подарок, это орден «За выдержанные отсчёты и досчитанные до конца секунды». Носи с гордостью, ты это заслужила!'],
+  ['assets/gift-trophy.png', 'Думала, внутри пустая коробочка? А вот и нет. Внутри признание: ты лучший человек этого года. И точка.'],
+  ['assets/gift-trophy.png', 'Главный подарок тот, что ждали дольше всего. Ты ждала целый год. Так что держи кубо... то есть почётное признание!'],
+  ['assets/gift-trophy.png', 'Финальный лут легендарной редкости: +100 к счастью, +50 к удаче, пассивный бонус «желания сбываются». С Днём Рождения!']
 ];
 
 /* промежуточные слои матрёшки — спрайты вместо эмодзи + реплики-тикеры */
 const NESTED_GIFTS = [
   { sprite: 'assets/gift-bear.png', alt: 'Медвежонок',
-    tease: 'Ой! Это был только первый слой… Медвежонок говорит: копать дальше!' },
+    tease: 'Ой! Это был только первый слой. Медвежонок передаёт: капай дальше!' },
   { sprite: 'assets/gift-candy.png', alt: 'Конфетка',
-    tease: 'Почти! Конфетка — это взятка, чтобы ты не закрыл(а) страницу ;) Дёрни крышку ещё раз!' },
+    tease: 'Почти! Конфетка это взятка, чтобы ты не закрывала страницу. Дёрни крышку ещё раз!' },
   { sprite: 'assets/gift-sparkle.png', alt: 'Светящаяся коробочка',
-    tease: 'Светится! Уже чувствуешь жар из-под крышки? Ещё один слой — и всё!' }
+    tease: 'Светится! Чувствуешь жар из-под крышки? Остался один слой, и всё!' }
 ];
 
 /* финальный залп — усиленный салют прямо из центра экрана */
@@ -619,7 +619,7 @@ $('surpriseBtn').addEventListener('click', () => {
         <img class="gift-base" src="assets/gift-box.png" alt="" draggable="false" />
       </div>
       <div class="gift-glow" aria-hidden="true"></div>
-      <div class="surprise-caption">нажми на коробочку...</div>
+      <div class="surprise-caption">Дёрни крышку, она не кусается...</div>
       <div class="surprise-burst" aria-hidden="true"></div>
       <div class="surprise-msg"></div>
     </div>`;
@@ -681,7 +681,7 @@ $('surpriseBtn').addEventListener('click', () => {
       e.stopPropagation();
       /* следующая коробочка «выпрыгивает» из-под крышки */
       resetBox(box.className.includes('small') ? 'small' : '');
-      caption.textContent = '...и снова дёрни крышку!';
+      caption.textContent = 'И снова дёрни крышку!';
       caption.style.display = '';
       box.classList.add('teasing');
       setTimeout(() => box.classList.remove('teasing'), 900);
@@ -707,12 +707,12 @@ $('surpriseBtn').addEventListener('click', () => {
         grandSalvo();
         const [sprite, text] = pick(SURPRISE_MESSAGES);
         const bonus = revealCount > 1
-          ? `<div class="surprise-bonus">Ты открыл(а) сюрприз ${revealCount}-й раз — чемпион праздника</div>`
+          ? `<div class="surprise-bonus">Ты открыла сюрприз уже ${revealCount} раз: абсолютный чемпион терпения</div>`
           : '';
         msg.innerHTML = `<div class="grand-reveal">
             <div class="grand-rays" aria-hidden="true"></div>
             <img class="big-sprite grand-sprite" src="${sprite}" alt="" draggable="false" />
-            <div class="grand-title">ГЛАВНЫЙ ПОДАРОК</div>
+            <div class="grand-title">Главный подарок для тебя</div>
             <div class="grand-text">${text}</div>${bonus}
             <button class="btn surprise-close">ЗАКРЫТЬ</button>
           </div>`;
@@ -730,7 +730,7 @@ $('surpriseBtn').addEventListener('click', () => {
       burstConfetti(40 + layer * 30);
       setTimeout(() => {
         showTease(gift.sprite, gift.alt, gift.tease,
-          layer === NESTED_GIFTS.length - 1 ? 'ПОСЛЕДНИЙ СЛОЙ!' : 'Открыть дальше →');
+          layer === NESTED_GIFTS.length - 1 ? 'ПОСЛЕДНИЙ СЛОЙ: держись!' : 'Копать дальше →');
         animating = false;
       }, 520);
     }
@@ -750,13 +750,17 @@ $('surpriseBtn').addEventListener('click', () => {
 });
 
 /* ---------- возврат на страницу ожидания ---------- */
-$('backBtn').addEventListener('click', () => {
-  sessionStorage.setItem('visitedParty', Date.now().toString());
-  // добавляем ?returning=1, но сохраняем уже имеющиеся query-параметры (например ?debug=)
-  const params = new URLSearchParams(location.search);
-  params.set('returning', '1');
-  location.href = 'index.html?' + params.toString();
-});
+/* кнопка убрана со страницы поздравления — обработчик защищён проверкой наличия кнопки */
+const backBtn = $('backBtn');
+if (backBtn) {
+  backBtn.addEventListener('click', () => {
+    sessionStorage.setItem('visitedParty', Date.now().toString());
+    // добавляем ?returning=1, но сохраняем уже имеющиеся query-параметры (например ?debug=)
+    const params = new URLSearchParams(location.search);
+    params.set('returning', '1');
+    location.href = 'index.html?' + params.toString();
+  });
+}
 
 /* лёгкая автосалва через пару секунд */
 setTimeout(() => fireworksSalvo(4, 350), 2000);

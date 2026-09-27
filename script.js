@@ -568,7 +568,7 @@ function onReplayFinished() {
     <div class="replay-banner-inner">
       <span class="rb-spark" aria-hidden="true"></span>
       <b>ВОТ ОНА — ТА САМАЯ МИНУТА!</b>
-      <p>Праздник уже наступил но мы смогли посмотреть на него с другой стороны. С 19-летием::</p>
+      <p>Праздник уже наступил но мы смогли посмотреть на него с другой стороны. С 19-летием^^</p>
       <div class="replay-banner-actions">
         <button class="btn rb-btn" id="replayToParty">ПЕРЕЙТИ К ПРАЗДНИКУ →</button>
         <button class="btn rb-btn" id="replayAgain">Ещё разок, только для тебя</button>
